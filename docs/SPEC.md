@@ -3,7 +3,7 @@
 ## Goal
 A phone/iPad-friendly, timed practice site for a 10-year-old preparing for the **Hippo English
 Olympiad — Little Hippo category, Continental (Qualifier) round**. Deployed at
-`hippomock.urstory.studio`.
+`mylittletest.urstory.studio`.
 
 ## Real exam format (from the official Hippo 2025 Regulations)
 - **Little Hippo** = school grades 3–4. CEFR **Pre-A1 → A1 Young Learners**.

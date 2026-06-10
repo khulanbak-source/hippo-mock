@@ -17,7 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CONFIG = {
     "timeLimitSec": 40 * 60,     # 40 minutes (Little Hippo sitting: 20 reading + 20 UoE)
     "passPct": 75,               # average of crossword% and UoE%
-    "examLabel": "Little Hippo · Continental Round",
+    "examLabel": "My Little Test · A1",
 }
 
 # ====================================================================

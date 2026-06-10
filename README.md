@@ -1,7 +1,7 @@
 # Hippo Mock Exam 🦛
 
 Interactive, timed practice exams for the **Hippo English Olympiad — Little Hippo, Continental Round**.
-Live at **hippomock.urstory.studio**.
+Live at **mylittletest.urstory.studio**.
 
 Each exam = **1 crossword + 30 open-ended "Use of English" questions**, matching the real
 Continental round. 40-minute timer. Pass mark **75%** (average of the two sections, no negative
