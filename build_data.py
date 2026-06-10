@@ -164,7 +164,7 @@ def main():
         nwords = len(cw["across"]) + len(cw["down"])
         print(f"Exam {i+1:2d} | {theme:20s} | crossword {cw['rows']}x{cw['cols']} "
               f"{nwords} words | UoE {len(uoe[i])} Qs")
-        exams.append({"id": i + 1, "crossword": cw, "uoe": uoe[i]})
+        exams.append({"id": i + 1, "batch": 1, "crossword": cw, "uoe": uoe[i]})
 
     payload = {"config": CONFIG, "exams": exams}
     # Written to api/_lib/ so it ships ONLY inside the serverless functions

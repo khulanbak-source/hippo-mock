@@ -11,8 +11,8 @@ const { sign } = require("./_lib/auth");
 const NOTION_DB_ID = process.env.NOTION_DB_ID || "37b5bc947e198011a3c5e3553b795f52";
 const NOTION_VERSION = "2022-06-28";
 
-function okToken(name, device) {
-  return sign({ n: name, d: device || "" }); // 4h session token
+function okToken(name, device, batch) {
+  return sign({ n: name, d: device || "", b: batch || 1 }); // 4h session token
 }
 
 function normName(s) {
@@ -75,11 +75,12 @@ module.exports = async (req, res) => {
 
     const matchedName = (((page.properties || {}).Name || {}).title || []).map((t) => t.plain_text).join("");
     const boundDevice = readRichText((page.properties || {}).Device);
+    const unlockedBatch = ((((page.properties || {})["Batch 2"]) || {}).checkbox === true) ? 2 : 1;
 
     // ---- device-lock ----
     if (!device) {
       // client sent no device id (old client) — allow without locking
-      res.status(200).json({ ok: true, name: matchedName, token: okToken(matchedName, "") });
+      res.status(200).json({ ok: true, name: matchedName, token: okToken(matchedName, "", unlockedBatch) });
       return;
     }
     if (boundDevice && boundDevice !== device) {
@@ -101,7 +102,7 @@ module.exports = async (req, res) => {
         console.error("device-claim error", e);
       }
     }
-    res.status(200).json({ ok: true, name: matchedName, token: okToken(matchedName, device) });
+    res.status(200).json({ ok: true, name: matchedName, token: okToken(matchedName, device, unlockedBatch) });
   } catch (err) {
     console.error("login handler error", err);
     res.status(200).json({ ok: false, reason: "server" });

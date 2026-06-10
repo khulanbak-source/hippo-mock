@@ -3,6 +3,7 @@
 //   -> { ok, cwPct, uoePct, overall, passed, review:{ cw:[...], uoe:[...] } }
 const { verify } = require("./_lib/auth");
 const DATA = require("./_lib/exams.json");
+const notion = require("./_lib/notion");
 
 function norm(s) {
   return (s || "").toString().trim().toLowerCase().replace(/[.,!?;:'"]/g, "").replace(/\s+/g, " ");
@@ -54,6 +55,13 @@ module.exports = async (req, res) => {
 
   var overall = Math.round((cwPct + uPct) / 2);
   var passed = overall >= (DATA.config.passPct || 75);
+
+  // record the attempt in Notion (don't fail grading if it errors)
+  if (notion.hasToken()) {
+    try {
+      await notion.createResult({ name: sess.n, exam: exam.id, crossword: cwPct, uoe: uPct, overall: overall, passed: passed });
+    } catch (e) { console.error("result write failed", e && e.message); }
+  }
 
   res.status(200).json({
     ok: true, cwPct: cwPct, uoePct: uPct, overall: overall, passed: passed,

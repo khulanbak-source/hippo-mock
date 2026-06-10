@@ -26,10 +26,14 @@ module.exports = async (req, res) => {
   var sess = verify(token);
   if (!sess) { res.status(401).json({ ok: false, reason: "unauthorized" }); return; }
 
+  var unlocked = sess.b || 1;
+
   if (body.meta || (req.query && req.query.meta)) {
     res.status(200).json({
-      ok: true, config: DATA.config,
-      exams: DATA.exams.map(function (e) { return { id: e.id, theme: e.crossword.theme }; }),
+      ok: true, config: DATA.config, unlockedBatch: unlocked,
+      exams: DATA.exams
+        .filter(function (e) { return (e.batch || 1) <= unlocked; })
+        .map(function (e) { return { id: e.id, theme: e.crossword.theme, batch: e.batch || 1 }; }),
     });
     return;
   }
@@ -37,6 +41,7 @@ module.exports = async (req, res) => {
   var id = body.id != null ? body.id : (req.query && req.query.id);
   var exam = DATA.exams.find(function (e) { return String(e.id) === String(id); });
   if (!exam) { res.status(404).json({ ok: false, reason: "noexam" }); return; }
+  if ((exam.batch || 1) > unlocked) { res.status(403).json({ ok: false, reason: "locked" }); return; }
 
   res.status(200).json({
     ok: true, config: DATA.config,
