@@ -30,6 +30,17 @@ they can log in. No redeploy needed.
 
 Until `NOTION_TOKEN` is set, login shows *"Login is not set up yet."*
 
+### Device-lock (one code = one device)
+Each passcode binds to the **first device** that logs in with it (stored in the `Device` column
+of the Users DB). Another device using the same code is refused with *"This code is already used
+on another device."* This stops kids sharing one code.
+
+- **Move a child to a new iPad / unstick a login:** open their row in the Notion Users DB and
+  **clear the `Device` cell**. The next device to log in claims it.
+- The integration needs **"Update content"** capability for the claim to be written (Notion →
+  *My integrations* → your integration → Capabilities). Without it, login still works but the
+  lock is not enforced.
+
 ## Editing the questions / adding 10 more exams
 All content is generated into `data.js` by `build_data.py`:
 - **Crosswords**: edit the `THEMES` list in `build_data.py` (word + clue).

@@ -45,6 +45,15 @@
     var m = Math.floor(s / 60), ss = s % 60;
     return m + ":" + (ss < 10 ? "0" : "") + ss;
   }
+  function deviceId() {
+    var k = "hippo_device", v = localStorage.getItem(k);
+    if (!v) {
+      v = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+        : "d" + Date.now().toString(36) + Math.random().toString(36).slice(2);
+      localStorage.setItem(k, v);
+    }
+    return v;
+  }
 
   // =================================================================== LOGIN
   var loginForm = $("login-form");
@@ -60,7 +69,7 @@
     fetch("/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name, code: code })
+      body: JSON.stringify({ name: name, code: code, device: deviceId() })
     }).then(function (r) { return r.json().catch(function () { return { ok: false }; }); })
       .then(function (res) {
         btn.disabled = false; btn.textContent = "Log in";
@@ -68,6 +77,9 @@
         else if (res && res.reason === "notconfigured") {
           msg.className = "form-msg err";
           msg.textContent = "Login is not set up yet. (Ask Mum to add the Notion token.)";
+        } else if (res && res.reason === "otherdevice") {
+          msg.className = "form-msg err";
+          msg.textContent = "This code is already used on another device. Ask Mum to reset it.";
         } else {
           msg.className = "form-msg err"; msg.textContent = "Wrong name or passcode. Try again.";
         }
