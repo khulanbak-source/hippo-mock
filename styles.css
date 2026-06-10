@@ -46,7 +46,6 @@ input[type=text]:focus{border-color:var(--green);background:#fff}
 .btn-primary{background:var(--green);color:#fff}
 .btn-primary:hover{background:var(--green-d)}
 .btn-ghost{background:transparent;color:#8a807a;box-shadow:none;min-height:44px}
-a.btn{display:block;text-align:center;text-decoration:none;line-height:1.4}
 .btn.big{font-size:20px;padding:16px;min-height:58px}
 .form-msg{min-height:22px;margin:10px 0 0;font-weight:700}
 .form-msg.err{color:var(--red)}

@@ -76,10 +76,10 @@
         if (res && res.ok) { enterReady(res.name || name); }
         else if (res && res.reason === "notconfigured") {
           msg.className = "form-msg err";
-          msg.textContent = "Login is not set up yet. (Ask Mum to add the Notion token.)";
+          msg.textContent = "Login is not set up yet. Ask the admin to set it up.";
         } else if (res && res.reason === "otherdevice") {
           msg.className = "form-msg err";
-          msg.textContent = "This code is already used on another device. Ask Mum to reset it.";
+          msg.textContent = "This code is already used on another device. Ask the admin to reset it.";
         } else {
           msg.className = "form-msg err"; msg.textContent = "Wrong name or passcode. Try again.";
         }
@@ -100,7 +100,7 @@
   function updateProgressLine() {
     var n = getPassed().length, total = DATA.exams.length;
     var line = $("progress-line");
-    if (n >= total) { line.textContent = "🏆 You passed all " + total + " exams! Ask Mum for 10 more."; }
+    if (n >= total) { line.textContent = "🏆 You passed all " + total + " exams! Ask the admin for 10 more."; }
     else { line.textContent = "⭐ Passed: " + n + " / " + total + " exams"; }
   }
 
