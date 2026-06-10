@@ -254,7 +254,11 @@
   // ==================================================================== SUBMIT
   $("btn-submit").addEventListener("click", confirmSubmit);
   $("btn-submit-2").addEventListener("click", confirmSubmit);
-  function confirmSubmit() { if (state.submitted) return; if (window.confirm("Finish the exam and see your score?")) submitExam(false); }
+  function confirmSubmit() { if (state.submitted) return; $("confirm-modal").classList.remove("hidden"); }
+  function closeConfirm() { $("confirm-modal").classList.add("hidden"); }
+  $("confirm-cancel").addEventListener("click", closeConfirm);
+  $("confirm-modal").addEventListener("click", function (e) { if (e.target === $("confirm-modal")) closeConfirm(); });
+  $("confirm-yes").addEventListener("click", function () { closeConfirm(); submitExam(false); });
   function collectCrossword() {
     var cw = state.exam.crossword, out = [];
     for (var r = 0; r < cw.rows; r++) { var row = []; for (var c = 0; c < cw.cols; c++) { var inp = state.cellInputs[r][c]; row.push(inp ? inp.value : ""); } out.push(row); }

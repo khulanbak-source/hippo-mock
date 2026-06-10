@@ -133,6 +133,18 @@ input[type=text]:focus{border-color:var(--green);background:#fff}
 .review-item .rt{font-weight:800}
 .r-ok{color:var(--ok)} .r-no{color:var(--red)}
 
+/* ---- confirm modal ---- */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(44,40,37,.45);
+  display:flex;align-items:center;justify-content:center;padding:24px;animation:fade .15s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal-card{background:#fff;border-radius:18px;box-shadow:var(--shadow);padding:26px 24px;
+  max-width:380px;width:100%;text-align:center;animation:pop .15s ease}
+@keyframes pop{from{transform:scale(.94);opacity:.6}to{transform:scale(1);opacity:1}}
+.modal-emoji{font-size:44px;line-height:1}
+.modal-card h3{margin:.3em 0}
+.modal-actions{display:flex;gap:10px;margin-top:18px}
+.modal-actions .btn{margin-top:0}
+
 /* ---- my scores ---- */
 .scores-card{max-width:560px;text-align:left}
 .scores-card h2{text-align:center}
