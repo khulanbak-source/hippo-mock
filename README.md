@@ -51,24 +51,38 @@ All content is generated into `data.js` by `build_data.py`:
 
 Then rebuild and deploy:
 ```bash
-python3 build_data.py     # regenerates data.js (validates 10×30 + crosswords)
+python3 build_data.py     # regenerates api/_lib/exams.json (validates 10×30 + crosswords)
 git add -A && git commit -m "content: refresh exams" && git push
 ```
 Vercel auto-deploys on push.
 
+## Content is gated (important for selling)
+Exam questions and answers are **not** shipped to the browser. They live in
+`api/_lib/exams.json`, which is bundled only inside the serverless functions (the `_lib`
+folder is never a route and never statically served). On login the user gets a signed,
+4-hour session token; only that token can:
+- `POST /api/exam` → fetch one exam **with answers stripped out**, and
+- `POST /api/grade` → have answers checked **server-side** (the answer key never leaves the server).
+
+`.vercelignore` also keeps `*.py`, `content/`, and `docs/` out of the deployment, so the
+source files (which contain answers) are never downloadable.
+
 ## Local dev
 ```bash
-python3 build_data.py
-python3 -m http.server 8000      # then open http://localhost:8000/?dev=1  (skips login for UI testing)
-# For real login testing: `vercel dev` with NOTION_TOKEN in .env.local
+python3 build_data.py            # regenerates api/_lib/exams.json
+vercel dev                       # runs the static app + /api functions locally
+# needs NOTION_TOKEN (and optionally SESSION_SECRET) in .env.local
 ```
 
 ## Files
 | Path | What |
 |------|------|
-| `index.html` / `styles.css` / `app.js` | the app (no build step) |
-| `data.js` | generated exam content (do not hand-edit) |
+| `index.html` / `styles.css` / `app.js` | the app (no build step); fetches exams + grading from the API |
+| `api/login.js` | Notion name+passcode check, device-lock, issues session token |
+| `api/exam.js` | gated exam delivery (answers stripped) |
+| `api/grade.js` | gated server-side grading |
+| `api/_lib/auth.js` | session-token sign/verify |
+| `api/_lib/exams.json` | generated exam content **with** answers (function-only, never served) |
 | `build_data.py` | crossword generator + content assembler |
-| `content/uoe_*.json` | the 10 Use-of-English tests (source of truth) |
-| `api/login.js` | Notion name+passcode check |
+| `content/uoe_*.json` | the 10 Use-of-English tests (source of truth, not deployed) |
 | `docs/SPEC.md` | design + exam-format notes |

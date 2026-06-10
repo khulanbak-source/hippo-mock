@@ -6,8 +6,14 @@
 //
 // To move a child to a new device: clear the "Device" cell in their Notion row.
 
+const { sign } = require("./_lib/auth");
+
 const NOTION_DB_ID = process.env.NOTION_DB_ID || "37b5bc947e198011a3c5e3553b795f52";
 const NOTION_VERSION = "2022-06-28";
+
+function okToken(name, device) {
+  return sign({ n: name, d: device || "" }); // 4h session token
+}
 
 function normName(s) {
   return (s || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
@@ -73,7 +79,7 @@ module.exports = async (req, res) => {
     // ---- device-lock ----
     if (!device) {
       // client sent no device id (old client) — allow without locking
-      res.status(200).json({ ok: true, name: matchedName });
+      res.status(200).json({ ok: true, name: matchedName, token: okToken(matchedName, "") });
       return;
     }
     if (boundDevice && boundDevice !== device) {
@@ -95,7 +101,7 @@ module.exports = async (req, res) => {
         console.error("device-claim error", e);
       }
     }
-    res.status(200).json({ ok: true, name: matchedName });
+    res.status(200).json({ ok: true, name: matchedName, token: okToken(matchedName, device) });
   } catch (err) {
     console.error("login handler error", err);
     res.status(200).json({ ok: false, reason: "server" });

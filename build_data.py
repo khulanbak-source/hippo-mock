@@ -167,11 +167,15 @@ def main():
         exams.append({"id": i + 1, "crossword": cw, "uoe": uoe[i]})
 
     payload = {"config": CONFIG, "exams": exams}
-    out = "window.EXAM_DATA = " + json.dumps(payload, ensure_ascii=False) + ";\n"
-    with open(os.path.join(HERE, "data.js"), "w", encoding="utf-8") as f:
+    # Written to api/_lib/ so it ships ONLY inside the serverless functions
+    # (underscore-prefixed = not a route, not statically served). Answers never
+    # reach the browser; the client gets stripped content via /api/exam.
+    out_dir = os.path.join(HERE, "api", "_lib")
+    os.makedirs(out_dir, exist_ok=True)
+    out = json.dumps(payload, ensure_ascii=False)
+    with open(os.path.join(out_dir, "exams.json"), "w", encoding="utf-8") as f:
         f.write(out)
-    kb = len(out) / 1024
-    print(f"\nWROTE data.js  ({kb:.0f} KB, {len(exams)} exams)")
+    print(f"\nWROTE api/_lib/exams.json  ({len(out) / 1024:.0f} KB, {len(exams)} exams)")
 
 
 if __name__ == "__main__":

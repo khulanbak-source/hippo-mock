@@ -1,0 +1,9 @@
+# Keep answer-bearing source + build files OUT of the public deployment.
+# The runtime only needs: index.html, styles.css, app.js, and api/** (which
+# bundles api/_lib/exams.json into the functions). Everything below is build-time
+# or source only and must never be statically served.
+*.py
+content/
+serve.js
+docs/
+.env.example
