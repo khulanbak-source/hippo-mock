@@ -71,7 +71,7 @@
       else {
         btn.disabled = false; btn.textContent = "Log in"; msg.className = "form-msg err";
         if (res && res.reason === "notconfigured") msg.textContent = "Login is not set up yet. Ask the admin to set it up.";
-        else if (res && res.reason === "otherdevice") msg.textContent = "This code is already used on another device. Ask the admin to reset it.";
+        else if (res && res.reason === "otherdevice") msg.textContent = "This code is already used on 2 devices. Ask the admin to reset it.";
         else if (res && res.reason === "network") msg.textContent = "No internet. Check your connection.";
         else msg.textContent = "Wrong name or passcode. Try again.";
       }

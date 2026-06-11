@@ -30,14 +30,15 @@ they can log in. No redeploy needed.
 
 Until `NOTION_TOKEN` is set, login shows *"Login is not set up yet."*
 
-### Device-lock (one code = one device)
-Each passcode binds to the **first device** that logs in with it (stored in the `Device` column
-of the Users DB). Another device using the same code is refused with *"This code is already used
-on another device."* This stops kids sharing one code.
+### Device-lock (one code = up to two devices)
+Each passcode may be used on **up to 2 devices**. The first two devices to log in are recorded in
+the `Device` and `Device 2` columns of the Users DB; a third, different device is refused with
+*"This code is already used on 2 devices."* This stops a code being shared around a class while
+still letting a kid use, say, an iPad and a phone.
 
-- **Move a child to a new iPad / unstick a login:** open their row in the Notion Users DB and
-  **clear the `Device` cell**. The next device to log in claims it.
-- The integration needs **"Update content"** capability for the claim to be written (Notion →
+- **Free a slot / move a child to a new device:** open their row in the Notion Users DB and
+  **clear the `Device` or `Device 2` cell**. The next device to log in takes the freed slot.
+- The integration needs **"Update content"** capability for the slots to be written (Notion →
   *My integrations* → your integration → Capabilities). Without it, login still works but the
   lock is not enforced.
 
