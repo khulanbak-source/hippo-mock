@@ -52,6 +52,8 @@ input[type=text]:focus{border-color:var(--green);background:#fff}
 .form-msg.ok{color:var(--ok)}
 
 .progress-line{font-weight:800;color:var(--green);margin:.2em 0 1em}
+.level-chip{display:inline-block;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;
+  background:var(--clay);color:#fff;padding:2px 12px;border-radius:20px;vertical-align:middle}
 .rules{text-align:left;background:var(--sand);border-radius:14px;padding:16px 18px;margin:14px 0}
 .rules h3{margin-bottom:.4em}
 .rules ul{margin:0;padding-left:4px;list-style:none}

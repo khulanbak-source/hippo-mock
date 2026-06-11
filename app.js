@@ -81,7 +81,7 @@
   function loadAll(name, btn) {
     api("/api/exam", { token: state.token, meta: true }).then(function (m) {
       if (!m || !m.ok) { if (btn) { btn.disabled = false; btn.textContent = "Log in"; } var msg = $("login-msg"); msg.className = "form-msg err"; msg.textContent = "Could not load exams. Try again."; return; }
-      state.config = m.config || {}; state.exams = m.exams || [];
+      state.config = m.config || {}; state.exams = m.exams || []; state.category = m.category || "";
       TIME_LIMIT = state.config.timeLimitSec || 2400; PASS = state.config.passPct || 75;
       refreshScores(function () { if (btn) { btn.disabled = false; btn.textContent = "Log in"; } enterReady(name); });
     });
@@ -89,6 +89,9 @@
 
   function enterReady(name) {
     state.name = name; $("ready-name").textContent = name;
+    var lvl = $("ready-level");
+    if (state.category) { lvl.textContent = state.category; lvl.classList.remove("hidden"); }
+    else { lvl.classList.add("hidden"); }
     $("rule-time").textContent = Math.round(TIME_LIMIT / 60) + " minutes"; $("rule-pass").textContent = PASS + "%";
     updateProgressLine(); show("screen-ready");
   }
