@@ -134,37 +134,64 @@ THEMES = [
 # ====================================================================
 # LOAD + VALIDATE USE OF ENGLISH
 # ====================================================================
-def load_uoe():
-    with open(os.path.join(HERE, "content", "uoe_1_5.json"), encoding="utf-8") as f:
-        a = json.load(f)
-    with open(os.path.join(HERE, "content", "uoe_6_10.json"), encoding="utf-8") as f:
-        b = json.load(f)
-    tests = a + b
-    assert len(tests) == 10, f"expected 10 UoE tests, got {len(tests)}"
+# ====================================================================
+# HIPPO 1 crossword word lists (A2 vocabulary)
+# ====================================================================
+THEMES_HIPPO1 = [
+    ("Travel", [("AIRPORT","Place where planes take off and land."),("PASSPORT","Official book you show to travel to another country."),("SUITCASE","A big bag you pack your clothes in for a trip."),("TICKET","A small paper that lets you get on a plane or train."),("HOTEL","A building where you pay to sleep when you travel."),("JOURNEY","A long trip from one place to another."),("LUGGAGE","All the bags and cases you take on a trip."),("FLIGHT","A journey by plane."),("TOURIST","A person who travels to visit interesting places."),("ABROAD","In or to a foreign country."),("BEACH","A sandy place by the sea."),("CAMERA","You use it to take photos on holiday.")]),
+    ("Technology", [("LAPTOP","A small computer you can carry."),("TABLET","A flat computer with a touch screen."),("SCREEN","The flat part of a device where you see pictures."),("KEYBOARD","You press its keys to type letters."),("ROBOT","A machine that can do jobs by itself."),("BATTERY","It stores power so your phone can work."),("INTERNET","The system that connects computers all over the world."),("MESSAGE","A short note you send on a phone."),("CHARGER","You use it to fill your phone with power."),("DOWNLOAD","To copy a file from the internet to your device."),("PASSWORD","A secret word you type to open an account."),("SCANNER","A machine that copies a picture into a computer.")]),
+    ("Environment", [("FOREST","A large area full of trees."),("RIVER","Water that flows across the land to the sea."),("MOUNTAIN","A very high hill made of rock."),("POLLUTION","Dirty air, water or land that harms nature."),("RECYCLE","To use paper, glass or plastic again."),("PLANET","Earth is one of these in space."),("NATURE","Plants, animals and the world around us."),("RUBBISH","Things you throw away."),("CLIMATE","The usual weather of a place."),("ENERGY","Power for light, heat and machines."),("OCEAN","A very large sea."),("ISLAND","Land with water all around it.")]),
+    ("Health", [("DOCTOR","This person helps you when you are ill."),("HOSPITAL","A building where ill people are looked after."),("MEDICINE","You take it to get better when you are sick."),("FEVER","When your body is too hot because you are ill."),("HEART","It pumps blood inside your chest."),("HEALTHY","Strong and not ill."),("NURSE","This person helps the doctor look after patients."),("DENTIST","This person looks after your teeth."),("EXERCISE","Activity like running that keeps you fit."),("BANDAGE","A long cloth you put on a cut."),("COUGH","A loud noise from your throat when you are ill."),("STOMACH","The part of your body where food goes.")]),
+    ("Food", [("RESTAURANT","A place where you pay to eat a meal."),("MENU","The list of food you can order."),("DESSERT","The sweet food you eat at the end of a meal."),("WAITER","This person brings your food to the table."),("DELICIOUS","Tasting very nice."),("BREAKFAST","The first meal of the day."),("VEGETABLE","A carrot or a potato is one of these."),("KITCHEN","The room where you cook food."),("RECIPE","Instructions that tell you how to cook a dish."),("HUNGRY","Feeling that you need to eat."),("CHEF","This person cooks food in a restaurant."),("PLATE","A flat dish you eat your food from.")]),
+    ("School", [("LIBRARY","The place where you borrow books."),("TEACHER","This person helps you learn at school."),("HOMEWORK","School work you do at home."),("EXAM","A big test at the end of a term."),("LESSON","A time when a teacher teaches you something."),("SCIENCE","The subject about plants, animals and experiments."),("PROJECT","A big piece of school work over many days."),("SUBJECT","Maths and history are each a ___."),("ANSWER","What you write when there is a question."),("STUDENT","A person who studies at school."),("HISTORY","The subject about the past."),("PENCIL","You write with it and can rub it out.")]),
+    ("Hobbies", [("GUITAR","A musical instrument with six strings."),("CINEMA","A place where you go to watch films."),("FOOTBALL","A game where you kick a ball into a goal."),("PAINTING","Making a picture with a brush and colours."),("CHESS","A board game with a king and a queen."),("SWIMMING","Moving through the water for fun or sport."),("DANCING","Moving your body to music."),("HOBBY","Something you enjoy doing in your free time."),("MUSIC","Sounds and songs you listen to."),("COMIC","A book that tells a story with pictures."),("AUDIENCE","The people who watch a show."),("CONCERT","A live show where people play music.")]),
+    ("Shopping", [("MARKET","An outdoor place with stalls to buy food."),("MONEY","Coins and notes you use to buy things."),("WALLET","A small case where you keep your money."),("RECEIPT","The paper that shows what you bought."),("CASHIER","This person takes your money at the till."),("EXPENSIVE","Costing a lot of money."),("CUSTOMER","A person who buys things in a shop."),("JACKET","A short coat you wear."),("PRESENT","Something nice you give to someone."),("BARGAIN","Something good that you buy very cheaply."),("PRICE","How much money something costs."),("QUEUE","A line of people waiting their turn.")]),
+    ("Jobs", [("PILOT","This person flies a plane."),("ENGINEER","This person designs and builds machines."),("FARMER","This person grows food and keeps animals."),("ARTIST","This person paints pictures."),("SCIENTIST","This person does experiments to learn things."),("FIREMAN","This person puts out fires."),("DENTIST","This person looks after your teeth."),("BUILDER","This person builds houses."),("UNIFORM","Special clothes you wear for a job."),("OFFICE","A room where people work at desks."),("DOCTOR","This person helps ill people."),("CAREER","The job you do for many years.")]),
+    ("Daily life", [("BREAKFAST","The first meal of the day."),("ROUTINE","The things you do every day in the same order."),("MORNING","The early part of the day."),("CHORES","Small jobs at home like washing dishes."),("DINNER","The main meal in the evening."),("HOMEWORK","School work you do at home."),("EVENING","The part of the day after the afternoon."),("WEEKEND","Saturday and Sunday."),("SCHEDULE","A plan that shows when you do things."),("EARLY","Before the usual time."),("ALARM","A clock sound that wakes you up."),("TIDY","Neat, with everything in its place.")]),
+]
+
+# Each category: name, id offset (Little Hippo MUST stay 0 -> ids 1..10), themes, UoE files
+CATEGORIES = [
+    {"name": "Little Hippo", "id_base": 0, "themes": THEMES,
+     "uoe": ["content/uoe_1_5.json", "content/uoe_6_10.json"]},
+    {"name": "Hippo 1", "id_base": 10, "themes": THEMES_HIPPO1,
+     "uoe": ["content/hippo1_uoe_1_5.json", "content/hippo1_uoe_6_10.json"]},
+]
+
+
+def load_uoe(files):
+    tests = []
+    for fn in files:
+        with open(os.path.join(HERE, fn), encoding="utf-8") as f:
+            tests += json.load(f)
+    assert len(tests) == 10, f"{files}: expected 10 UoE tests, got {len(tests)}"
     for ti, t in enumerate(tests, 1):
-        assert len(t) == 30, f"test {ti} has {len(t)} items (need 30)"
+        assert len(t) == 30, f"{files} test {ti} has {len(t)} items (need 30)"
         for qi, item in enumerate(t, 1):
-            q = item["q"]
-            assert q.count("____") == 1, f"test {ti} q{qi} blank count != 1: {q!r}"
+            assert item["q"].count("____") == 1, f"{files} test {ti} q{qi} blank count != 1: {item['q']!r}"
             ans = item.get("answers")
             assert isinstance(ans, list) and ans and all(isinstance(x, str) and x.strip() for x in ans), \
-                f"test {ti} q{qi} bad answers: {ans!r}"
+                f"{files} test {ti} q{qi} bad answers: {ans!r}"
             item["answers"] = [x.strip().lower() for x in ans]
     return tests
 
 
 # ====================================================================
-# BUILD
+# BUILD  (Little Hippo built FIRST + same seed order => grids unchanged)
 # ====================================================================
 def main():
-    uoe = load_uoe()
     exams = []
-    for i, (theme, words) in enumerate(THEMES):
-        cw = build_crossword(theme, words)
-        nwords = len(cw["across"]) + len(cw["down"])
-        print(f"Exam {i+1:2d} | {theme:20s} | crossword {cw['rows']}x{cw['cols']} "
-              f"{nwords} words | UoE {len(uoe[i])} Qs")
-        exams.append({"id": i + 1, "batch": 1, "crossword": cw, "uoe": uoe[i]})
+    for cat in CATEGORIES:
+        uoe = load_uoe(cat["uoe"])
+        for i, (theme, words) in enumerate(cat["themes"]):
+            cw = build_crossword(theme, words)
+            num = i + 1
+            eid = cat["id_base"] + num
+            nwords = len(cw["across"]) + len(cw["down"])
+            print(f"[{cat['name']:12s}] Exam {eid:2d} (#{num:2d}) | {theme:14s} | "
+                  f"cw {cw['rows']}x{cw['cols']} {nwords}w | UoE {len(uoe[i])}Q")
+            exams.append({"id": eid, "num": num, "category": cat["name"],
+                          "batch": 1, "crossword": cw, "uoe": uoe[i]})
 
     payload = {"config": CONFIG, "exams": exams}
     # Written to api/_lib/ so it ships ONLY inside the serverless functions

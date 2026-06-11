@@ -11,8 +11,8 @@ const { sign } = require("./_lib/auth");
 const NOTION_DB_ID = process.env.NOTION_DB_ID || "37b5bc947e198011a3c5e3553b795f52";
 const NOTION_VERSION = "2022-06-28";
 
-function okToken(name, device, batch) {
-  return sign({ n: name, d: device || "", b: batch || 1 }); // 4h session token
+function okToken(name, device, batch, category) {
+  return sign({ n: name, d: device || "", b: batch || 1, c: category || "Little Hippo" }); // 4h token
 }
 
 function normName(s) {
@@ -77,6 +77,7 @@ module.exports = async (req, res) => {
     const device1 = readRichText((page.properties || {}).Device);
     const device2 = readRichText((page.properties || {})["Device 2"]);
     const unlockedBatch = ((((page.properties || {})["Batch 2"]) || {}).checkbox === true) ? 2 : 1;
+    const category = ((((page.properties || {}).Category) || {}).select || {}).name || "Little Hippo";
 
     async function claim(propName) {
       // best-effort write into a free device slot (needs "Update content" capability)
@@ -93,7 +94,7 @@ module.exports = async (req, res) => {
     // ---- device-lock (max 2 devices per code) ----
     if (!device) {
       // client sent no device id (old client) — allow without locking
-      res.status(200).json({ ok: true, name: matchedName, token: okToken(matchedName, "", unlockedBatch) });
+      res.status(200).json({ ok: true, name: matchedName, token: okToken(matchedName, "", unlockedBatch, category) });
       return;
     }
     if (device !== device1 && device !== device2) {
@@ -102,7 +103,7 @@ module.exports = async (req, res) => {
       else if (!device2) { await claim("Device 2"); }
       else { res.status(200).json({ ok: false, reason: "otherdevice" }); return; }
     }
-    res.status(200).json({ ok: true, name: matchedName, token: okToken(matchedName, device, unlockedBatch) });
+    res.status(200).json({ ok: true, name: matchedName, token: okToken(matchedName, device, unlockedBatch, category) });
   } catch (err) {
     console.error("login handler error", err);
     res.status(200).json({ ok: false, reason: "server" });

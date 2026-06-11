@@ -18,6 +18,7 @@ async function createResult(row) {
     "Overall": { number: row.overall },
     "Result": { select: { name: row.passed ? "Pass" : "Fail" } },
   };
+  if (row.category) props["Category"] = { select: { name: row.category } };
   var r = await fetch("https://api.notion.com/v1/pages", {
     method: "POST", headers: headers(),
     body: JSON.stringify({ parent: { database_id: RESULTS_DB_ID }, properties: props }),

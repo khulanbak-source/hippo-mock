@@ -27,13 +27,14 @@ module.exports = async (req, res) => {
   if (!sess) { res.status(401).json({ ok: false, reason: "unauthorized" }); return; }
 
   var unlocked = sess.b || 1;
+  var cat = sess.c || "Little Hippo";
 
   if (body.meta || (req.query && req.query.meta)) {
     res.status(200).json({
-      ok: true, config: DATA.config, unlockedBatch: unlocked,
+      ok: true, config: DATA.config, unlockedBatch: unlocked, category: cat,
       exams: DATA.exams
-        .filter(function (e) { return (e.batch || 1) <= unlocked; })
-        .map(function (e) { return { id: e.id, theme: e.crossword.theme, batch: e.batch || 1 }; }),
+        .filter(function (e) { return (e.category || "Little Hippo") === cat && (e.batch || 1) <= unlocked; })
+        .map(function (e) { return { id: e.id, num: e.num || e.id, theme: e.crossword.theme, category: e.category || "Little Hippo", batch: e.batch || 1 }; }),
     });
     return;
   }
@@ -41,10 +42,12 @@ module.exports = async (req, res) => {
   var id = body.id != null ? body.id : (req.query && req.query.id);
   var exam = DATA.exams.find(function (e) { return String(e.id) === String(id); });
   if (!exam) { res.status(404).json({ ok: false, reason: "noexam" }); return; }
+  if ((exam.category || "Little Hippo") !== cat) { res.status(403).json({ ok: false, reason: "wrongcategory" }); return; }
   if ((exam.batch || 1) > unlocked) { res.status(403).json({ ok: false, reason: "locked" }); return; }
 
   res.status(200).json({
     ok: true, config: DATA.config,
-    exam: { id: exam.id, crossword: publicCrossword(exam.crossword), uoe: publicUoe(exam.uoe) },
+    exam: { id: exam.id, num: exam.num || exam.id, category: exam.category || "Little Hippo",
+            crossword: publicCrossword(exam.crossword), uoe: publicUoe(exam.uoe) },
   });
 };

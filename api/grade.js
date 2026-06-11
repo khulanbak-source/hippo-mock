@@ -59,7 +59,7 @@ module.exports = async (req, res) => {
   // record the attempt in Notion (don't fail grading if it errors)
   if (notion.hasToken()) {
     try {
-      await notion.createResult({ name: sess.n, exam: exam.id, crossword: cwPct, uoe: uPct, overall: overall, passed: passed });
+      await notion.createResult({ name: sess.n, exam: exam.id, crossword: cwPct, uoe: uPct, overall: overall, passed: passed, category: sess.c || "Little Hippo" });
     } catch (e) { console.error("result write failed", e && e.message); }
   }
 

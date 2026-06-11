@@ -118,7 +118,7 @@
         : (best != null ? '<span class="sbadge fail">' + best + '%</span>' : '<span class="sbadge none">Not yet</span>');
       var sub = attempts ? (attempts + (attempts === 1 ? " try" : " tries") + (best != null ? " · best " + best + "%" : "")) : "Not started";
       var li = document.createElement("li"); li.className = "score-row2";
-      li.innerHTML = '<div class="sr-main"><b>Exam ' + e.id + '</b> · ' + escAttr(e.theme) +
+      li.innerHTML = '<div class="sr-main"><b>Exam ' + (e.num || e.id) + '</b> · ' + escAttr(e.theme) +
         '<div class="sr-sub">' + sub + '</div></div><div class="sr-right">' + badge +
         '<button class="retake" data-id="' + e.id + '">' + (passed ? "Retake" : (best != null ? "Try again" : "Start")) + '</button></div>';
       ol.appendChild(li);
@@ -148,7 +148,7 @@
     api("/api/exam", { token: state.token, id: id }).then(function (res) {
       if (!res || !res.ok) { if (res && res.reason === "unauthorized") sessionEnded(); return; }
       state.exam = res.exam; state.submitted = false; state.timeLeft = TIME_LIMIT;
-      $("exam-num").textContent = state.exam.id;
+      $("exam-num").textContent = state.exam.num || state.exam.id;
       renderCrossword(state.exam.crossword); renderUoe(state.exam.uoe);
       $("review-box").classList.add("hidden"); show("screen-exam"); startTimer();
     });
