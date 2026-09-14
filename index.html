@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="mn">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
@@ -7,144 +7,46 @@
   <meta name="theme-color" content="#1f6f5c" />
   <title>My Little Test</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Comfortaa:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" />
   <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./hub.css" />
 </head>
-<body>
-  <div id="app">
-    <!-- ===== LOGIN ===== -->
-    <section id="screen-login" class="screen active">
-      <div class="card login-card">
-        <div class="hippo-logo">🦉</div>
-        <h1>My Little Test</h1>
-        <p class="muted">English practice for young learners</p>
-        <form id="login-form" autocomplete="off">
-          <label for="in-name">Your name</label>
-          <input id="in-name" name="name" type="text" autocomplete="off" autocapitalize="words"
-                 autocorrect="off" spellcheck="false" placeholder="Type your name" required />
-          <label for="in-code">Passcode</label>
-          <input id="in-code" name="code" type="text" inputmode="numeric" pattern="[0-9]*"
-                 autocomplete="off" placeholder="6 digits" required />
-          <button type="submit" id="btn-login" class="btn btn-primary big">Log in</button>
-          <p id="login-msg" class="form-msg" role="status"></p>
-        </form>
-        <a class="subject-jump" href="./math.html">✖️ Үржихүйн хүрд · Times tables (no passcode)</a>
-        <p class="disclaimer">Independent practice material. Not affiliated with, endorsed by, or associated with any official English exam or its organisers. All trademarks belong to their respective owners.</p>
-      </div>
-    </section>
+<body class="hub-body">
+<div id="app">
+  <button id="btn-lang" class="lang-toggle" type="button">EN</button>
 
-    <!-- ===== READY / START ===== -->
-    <section id="screen-ready" class="screen">
-      <div class="card">
-        <div class="hippo-logo small">🦉</div>
-        <h2>Hi <span id="ready-name">friend</span>! 👋 <span id="ready-level" class="level-chip hidden"></span></h2>
-        <p id="progress-line" class="progress-line"></p>
-        <div class="rules">
-          <h3>How the exam works</h3>
-          <ul>
-            <li>⏱️ You have <b id="rule-time">40 minutes</b>.</li>
-            <li>🧩 One <b>Crossword</b> — read the clue, type the word.</li>
-            <li>✏️ <b>30 questions</b> — type the missing word in the box.</li>
-            <li>✅ Get <b id="rule-pass">75%</b> to pass. Wrong answers do not lose marks.</li>
-            <li>🔄 If time runs out, you can start over.</li>
-          </ul>
-        </div>
-        <button id="btn-start" class="btn btn-primary big">Start exam ▶</button>
-        <button id="btn-scores" class="btn btn-ghost">📊 My scores</button>
-        <a class="subject-jump hidden" id="link-math" href="./math.html">✖️ Үржихүйн хүрд · Times tables</a>
-        <button id="btn-logout" class="btn btn-ghost">Log out</button>
-      </div>
-    </section>
-
-    <!-- ===== MY SCORES ===== -->
-    <section id="screen-scores" class="screen">
-      <div class="card scores-card">
-        <div class="hippo-logo small">📊</div>
-        <h2>My scores</h2>
-        <p id="scores-summary" class="progress-line"></p>
-        <div id="scores-gate" class="scores-gate hidden"></div>
-        <ol id="scores-list" class="scores-list"></ol>
-        <button id="btn-scores-back" class="btn btn-ghost">← Back</button>
-      </div>
-    </section>
-
-    <!-- ===== EXAM ===== -->
-    <section id="screen-exam" class="screen">
-      <header class="exam-bar">
-        <div class="exam-bar-inner">
-          <span class="exam-title">Exam <span id="exam-num">1</span></span>
-          <div id="timer" class="timer">40:00</div>
-          <button id="btn-submit" class="btn btn-primary">Finish ✓</button>
-        </div>
-      </header>
-
-      <main class="exam-body">
-        <h2 class="part-title">Part 1 · Crossword <span id="cw-theme" class="theme-chip"></span></h2>
-        <p class="hint">Tap a clue, then type the letters. Tap a square to jump there.</p>
-        <div class="cw-layout">
-          <div id="cw-grid-wrap"><div id="cw-grid" class="cw-grid"></div></div>
-          <div class="cw-clues">
-            <div class="clue-col"><h4>Across →</h4><ol id="cw-across"></ol></div>
-            <div class="clue-col"><h4>Down ↓</h4><ol id="cw-down"></ol></div>
-          </div>
-        </div>
-
-        <h2 class="part-title">Part 2 · Use of English</h2>
-        <p class="hint">Type the one missing word in each box. A word in (brackets) is a clue.</p>
-        <ol id="uoe-list" class="uoe-list"></ol>
-
-        <div class="exam-end">
-          <button id="btn-submit-2" class="btn btn-primary big">Finish exam ✓</button>
-        </div>
-      </main>
-    </section>
-
-    <!-- ===== RESULT ===== -->
-    <section id="screen-result" class="screen">
-      <div class="card result-card">
-        <div id="result-emoji" class="result-emoji">🎉</div>
-        <h2 id="result-headline">Well done!</h2>
-
-        <!-- PASS: gated reveal -->
-        <div id="pass-gate" class="hidden">
-          <p class="muted">You passed! 🌟 Tap to see your score.</p>
-          <button id="btn-see-result" class="btn btn-primary big">See result</button>
-        </div>
-
-        <!-- score detail (shown after gate for pass, immediately for fail) -->
-        <div id="score-detail" class="hidden">
-          <div class="score-big"><span id="score-pct">0</span><span class="pct">%</span></div>
-          <div class="score-rows">
-            <div class="score-row"><span>🧩 Crossword</span><b id="score-cw">0%</b></div>
-            <div class="score-row"><span>✏️ Use of English</span><b id="score-uoe">0%</b></div>
-            <div class="score-row total"><span>Overall (average)</span><b id="score-overall">0%</b></div>
-          </div>
-          <p id="result-note" class="result-note"></p>
-          <div class="result-actions">
-            <button id="btn-review" class="btn btn-ghost">Review my answers</button>
-            <button id="btn-again" class="btn btn-primary">Try another exam ▶</button>
-          </div>
-          <button id="btn-result-scores" class="btn btn-ghost">📊 My scores</button>
-        </div>
-      </div>
-
-      <div id="review-box" class="card review-box hidden"></div>
-    </section>
-
-    <!-- ===== FINISH CONFIRM ===== -->
-    <div id="confirm-modal" class="modal-overlay hidden">
-      <div class="modal-card">
-        <div class="modal-emoji">📝</div>
-        <h3>Finish the exam?</h3>
-        <p class="muted">You'll see your score. You can't change your answers after this.</p>
-        <div class="modal-actions">
-          <button id="confirm-cancel" class="btn btn-ghost">Keep going</button>
-          <button id="confirm-yes" class="btn btn-primary">Finish ✓</button>
-        </div>
-      </div>
+  <!-- ===== LOGIN ===== -->
+  <section id="h-login" class="screen active">
+    <div class="card login-card">
+      <div class="hippo-logo">🎒</div>
+      <h1>My Little Test</h1>
+      <p class="muted" data-i18n="loginSub"></p>
+      <form id="h-login-form" autocomplete="off">
+        <label for="h-name" data-i18n="lblName"></label>
+        <input id="h-name" name="name" type="text" autocomplete="off" autocapitalize="words"
+               autocorrect="off" spellcheck="false" required />
+        <label for="h-code" data-i18n="lblCode"></label>
+        <input id="h-code" name="code" type="text" inputmode="numeric" pattern="[0-9]*"
+               autocomplete="off" required />
+        <button type="submit" id="h-btn-login" class="btn btn-primary big" data-i18n="btnLogin"></button>
+        <p id="h-msg" class="form-msg" role="status"></p>
+      </form>
+      <p class="disclaimer" data-i18n="disclaimer"></p>
     </div>
-  </div>
+  </section>
 
-  <script src="./app.js"></script>
+  <!-- ===== LIBRARY ===== -->
+  <section id="h-library" class="screen">
+    <div class="card library-card">
+      <h2 id="h-hi"></h2>
+      <p class="muted small" data-i18n="pickSub"></p>
+      <div id="h-tiles" class="tiles"></div>
+      <p class="muted small" id="h-locked-note"></p>
+      <button id="h-logout" class="btn btn-ghost" data-i18n="btnLogout"></button>
+    </div>
+  </section>
+</div>
+<script src="./session.js"></script>
+<script src="./hub.js"></script>
 </body>
 </html>

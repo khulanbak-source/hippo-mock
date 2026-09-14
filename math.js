@@ -7,7 +7,7 @@
 (function () {
   "use strict";
 
-  var KEY = "mlt_math_v1", LKEY = "mlt_math_lang";
+  var KEY = "mlt_math_v1", LKEY = "mlt_lang";
   var ORDER = [2, 5, 10, 1, 4, 3, 6, 9, 8, 7];   // easiest-first mastery ladder
   var BOX_MS = [0, 10 * 6e4, 864e5, 3 * 864e5, 7 * 864e5, 21 * 864e5];
   var STRONG = 3, TOP = 5, FAST_MS = 5000, QN = 10, NEW_PER_SESSION = 4;
@@ -35,7 +35,7 @@
       allTablesTip: "Одоо хурдан болтол нь давтаарай.",
       btnStart: "Дасгалаа эхлэх",
       btnProgress: "Ахицаа харах",
-      backSite: "← My Little Test руу буцах",
+      backSite: "← Бүх хичээл",
       chipWarm: "Бэлтгэл",
       countBy: "{0} тоол",                // {0} = instrumental digit, e.g. 2-оор
       warmHint: "Дутуу тоог нөхөөрэй.",
@@ -83,7 +83,7 @@
       allTablesTip: "Keep practising to make them lightning fast.",
       btnStart: "Start today's practice",
       btnProgress: "See my progress grid",
-      backSite: "← Back to My Little Test",
+      backSite: "← All subjects",
       chipWarm: "Warm up",
       countBy: "Count by {0}",
       warmHint: "Fill in the missing numbers.",
@@ -162,16 +162,6 @@
   // ================================================================= STORE
   function normName(s2) { return (s2 || "").toString().trim().toLowerCase().replace(/\s+/g, " "); }
   function progKey() { return user ? KEY + ":" + user : KEY; }
-  // Same key the exam app uses, so logging into both does not eat two device slots.
-  function deviceId() {
-    var k = "hippo_device", v = localStorage.getItem(k);
-    if (!v) {
-      v = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
-        : "d" + Date.now().toString(36) + Math.random().toString(36).slice(2);
-      localStorage.setItem(k, v);
-    }
-    return v;
-  }
   function load() {
     try { S = JSON.parse(localStorage.getItem(progKey())); } catch (e) { S = null; }
     // One-time adopt of progress saved before logins existed, so nothing is lost.
@@ -485,21 +475,12 @@
     var btn = $("m-btn-login");
     btn.disabled = true; btn.textContent = t("checking");
     msg.className = "form-msg"; msg.textContent = "";
-    fetch("/api/login", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name, code: code, device: deviceId(), course: "Multi" })
-    })
-      .then(function (r) { return r.json().catch(function () { return { ok: false, reason: "parse" }; }); })
-      .catch(function () { return { ok: false, reason: "network" }; })
+    window.MLT.login(name, code, "Multi")
       .then(function (res) {
         btn.disabled = false; btn.textContent = t("btnLogin");
         if (res && res.ok && res.token) {
-          token = res.token;
-          userName = res.name || name;
-          user = normName(userName);
-          $("m-in-code").value = "";
-          load();
-          renderHome();
+          window.MLT.save(res, name);
+          enter(res.name || name, res.token);
         } else {
           msg.className = "form-msg err";
           msg.textContent = loginErr(res && res.reason);
@@ -507,11 +488,17 @@
       });
   });
   $("btn-logout").addEventListener("click", function () {
-    token = ""; user = ""; userName = ""; S = null;
-    $("m-in-code").value = "";
-    $("m-login-msg").textContent = "";
-    show("m-login");
+    window.MLT.clear();
+    window.location.href = "/";
   });
+  function enter(name, tok) {
+    token = tok || "";
+    userName = name;
+    user = normName(name);
+    $("m-in-code").value = "";
+    load();
+    renderHome();
+  }
   $("btn-start").addEventListener("click", startWarmup);
   $("btn-progress").addEventListener("click", renderProgress);
   $("btn-prog-back").addEventListener("click", renderHome);
@@ -528,5 +515,10 @@
   try { lang = localStorage.getItem(LKEY) || "mn"; } catch (e) { lang = "mn"; }
   if (lang !== "en" && lang !== "mn") lang = "mn";
   applyLang();
-  show("m-login");
+  // Arriving from the library hub: already logged in, so go straight to practice.
+  (function boot() {
+    var s2 = window.MLT && window.MLT.get();
+    if (s2 && (s2.courses || []).indexOf("Multi") >= 0) { enter(s2.name, s2.token); return; }
+    show("m-login");
+  })();
 })();

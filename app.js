@@ -21,11 +21,6 @@
   }
   function norm(s) { return (s || "").toString().trim().toLowerCase().replace(/[.,!?;:'"]/g, "").replace(/\s+/g, " "); }
   function fmtTime(s) { var m = Math.floor(s / 60), ss = s % 60; return m + ":" + (ss < 10 ? "0" : "") + ss; }
-  function deviceId() {
-    var k = "hippo_device", v = localStorage.getItem(k);
-    if (!v) { v = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : "d" + Date.now().toString(36) + Math.random().toString(36).slice(2); localStorage.setItem(k, v); }
-    return v;
-  }
   function api(path, body) {
     return fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
       .then(function (r) { return r.json().catch(function () { return { ok: false, reason: "parse" }; }); })
@@ -33,6 +28,7 @@
   }
   function sessionEnded() {
     state.token = ""; state.submitted = false; if (state.timer) clearInterval(state.timer);
+    window.MLT.clear();
     $("in-code").value = "";
     var msg = $("login-msg"); msg.className = "form-msg err"; msg.textContent = "Your session ended. Please log in again.";
     show("screen-login");
@@ -66,8 +62,12 @@
     var name = $("in-name").value.trim(), code = $("in-code").value.trim(), msg = $("login-msg");
     if (!name || !code) { msg.className = "form-msg err"; msg.textContent = "Type your name and passcode."; return; }
     var btn = $("btn-login"); btn.disabled = true; btn.textContent = "Checking…"; msg.className = "form-msg"; msg.textContent = "";
-    api("/api/login", { name: name, code: code, device: deviceId(), course: "Hippo" }).then(function (res) {
-      if (res && res.ok && res.token) { state.token = res.token; state.courses = res.courses || []; loadAll(res.name || name, btn); }
+    window.MLT.login(name, code, "Hippo").then(function (res) {
+      if (res && res.ok && res.token) {
+        window.MLT.save(res, name);
+        state.token = res.token; state.courses = res.courses || [];
+        loadAll(res.name || name, btn);
+      }
       else {
         btn.disabled = false; btn.textContent = "Log in"; msg.className = "form-msg err";
         if (res && res.reason === "notconfigured") msg.textContent = "Login is not set up yet. Ask the admin to set it up.";
@@ -81,7 +81,7 @@
 
   function loadAll(name, btn) {
     api("/api/exam", { token: state.token, meta: true }).then(function (m) {
-      if (!m || !m.ok) { if (btn) { btn.disabled = false; btn.textContent = "Log in"; } var msg = $("login-msg"); msg.className = "form-msg err"; msg.textContent = "Could not load exams. Try again."; return; }
+      if (!m || !m.ok) { if (btn) { btn.disabled = false; btn.textContent = "Log in"; } var msg = $("login-msg"); msg.className = "form-msg err"; msg.textContent = "Could not load exams. Try again."; show("screen-login"); return; }
       state.config = m.config || {}; state.exams = m.exams || []; state.category = m.category || "";
       TIME_LIMIT = state.config.timeLimitSec || 2400; PASS = state.config.passPct || 75;
       refreshScores(function () { if (btn) { btn.disabled = false; btn.textContent = "Log in"; } enterReady(name); });
@@ -94,15 +94,13 @@
     if (state.category) { lvl.textContent = state.category; lvl.classList.remove("hidden"); }
     else { lvl.classList.add("hidden"); }
     $("rule-time").textContent = Math.round(TIME_LIMIT / 60) + " minutes"; $("rule-pass").textContent = PASS + "%";
-    // Only offer the times-tables link to kids enrolled in that course.
-    $("link-math").classList.toggle("hidden", (state.courses || []).indexOf("Multi") < 0);
     updateProgressLine(); show("screen-ready");
   }
   function updateProgressLine() {
     var n = passedCount(), total = state.exams.length;
     $("progress-line").textContent = allPassed() ? ("🏆 You passed all " + total + " exams!") : ("⭐ Passed: " + n + " / " + total + " exams");
   }
-  $("btn-logout").addEventListener("click", function () { state.name = ""; state.token = ""; $("in-code").value = ""; show("screen-login"); });
+  $("btn-logout").addEventListener("click", function () { window.MLT.clear(); window.location.href = "/"; });
 
   // =================================================================== MY SCORES
   $("btn-scores").addEventListener("click", openScores);
@@ -335,5 +333,15 @@
   function esc(s) { return (s || "").replace(/[&<>]/g, function (m) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[m]; }); }
   function escAttr(s) { return esc(s); }
 
-  show("screen-login");
+  // Arriving from the library hub: the session is already valid, so skip the login form.
+  (function boot() {
+    var s = window.MLT && window.MLT.get();
+    if (s && (s.courses || []).indexOf("Hippo") >= 0) {
+      state.token = s.token; state.courses = s.courses || [];
+      show("screen-ready");
+      loadAll(s.name, null);
+      return;
+    }
+    show("screen-login");
+  })();
 })();

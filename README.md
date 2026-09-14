@@ -1,14 +1,42 @@
-# Hippo Mock Exam 🦛
+# My Little Test 🎒
+
+A small, growing library of practice apps for young learners.
+Live at **mylittletest.urstory.studio**.
+
+| Path | What it is | Unlocked by |
+|---|---|---|
+| `/` | The library: one login, then a tile per subject | any valid passcode |
+| `/hippo` | Hippo English Olympiad mock exams | `Course` = `Hippo` |
+| `/math` | Times tables / Үржихүйн хүрд | `Course` = `Multi` |
+
+### Adding a subject
+One entry in the `SUBJECTS` array at the top of `hub.js`: an emoji, a path, MN and EN
+copy, and the `Course` option that unlocks it. Add that option to the `Course` property in
+Notion, and the tile appears for anyone whose row carries it. Set `soon: true` instead of a
+`course` to advertise something before it is built.
+
+### One login for the whole library
+`session.js` keeps the signed token in **`sessionStorage`** under `mlt_session`, so the hub
+logs a child in once and both apps read it. sessionStorage, not localStorage, on purpose:
+the session dies when the tab closes, so it is one login per sitting rather than a login
+remembered for days. Deep-linking to `/hippo` or `/math` without a session still shows that
+app's own login form, so bookmarks keep working. The device id lives in `MLT.device()` and is
+shared, so a child using two subjects still costs only one of their two device slots.
+
+`vercel.json` sets `cleanUrls`, which is what serves `hippo.html` at `/hippo`.
+
+---
+
+## Hippo Mock Exam 🦛
 
 Interactive, timed practice exams for the **Hippo English Olympiad — Little Hippo, Continental Round**.
-Live at **mylittletest.urstory.studio**.
 
 Each exam = **1 crossword + 30 open-ended "Use of English" questions**, matching the real
 Continental round. 40-minute timer. Pass mark **75%** (average of the two sections, no negative
 marking). 10 exams, shuffled; progress is saved on the device.
 
 ## How a kid uses it
-1. Open the site → type **name + passcode** → Log in.
+1. Open the site → type **name + passcode** → Log in → tap the **Hippo** tile.
 2. Tap **Start exam** → the 40-minute timer begins.
 3. Do the crossword (tap a clue, type the letters) and the 30 fill-in questions.
 4. Tap **Finish** (or let the timer run out).
