@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#1f6f5c" />
+  <title>Times Tables · My Little Test</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" />
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./math.css" />
+</head>
+<body class="math-body">
+<div id="app">
+
+  <!-- ===== HOME ===== -->
+  <section id="m-home" class="screen active">
+    <div class="card math-card">
+      <div class="hippo-logo">🧮</div>
+      <h1>Times Tables</h1>
+      <p class="muted" id="home-sub">A few minutes a day. That is all it takes.</p>
+
+      <div class="streak-row">
+        <div class="stat"><span class="stat-num" id="stat-streak">0</span><span class="stat-lbl">day streak</span></div>
+        <div class="stat"><span class="stat-num" id="stat-mastered">0</span><span class="stat-lbl">facts mastered</span></div>
+        <div class="stat"><span class="stat-num" id="stat-total">55</span><span class="stat-lbl">facts in all</span></div>
+      </div>
+
+      <div class="table-banner">
+        <span class="muted small">Learning now</span>
+        <div class="table-big" id="home-table">2 × table</div>
+        <div class="table-bar"><div class="table-bar-fill" id="home-tablebar"></div></div>
+        <span class="small" id="home-tabletxt"></span>
+      </div>
+
+      <button id="btn-start" class="btn btn-primary big">Start today's practice</button>
+      <button id="btn-progress" class="btn btn-ghost">See my progress grid</button>
+      <a class="back-link" href="./index.html">← Back to My Little Test</a>
+    </div>
+  </section>
+
+  <!-- ===== WARM UP ===== -->
+  <section id="m-warmup" class="screen">
+    <div class="card math-card">
+      <div class="step-chip">Warm up</div>
+      <h2 id="warm-title">Count by 2</h2>
+      <p class="muted small">Fill in the missing numbers.</p>
+      <div class="ladder" id="warm-ladder"></div>
+      <div class="pad-wrap">
+        <div class="pad-display" id="warm-display">?</div>
+        <div class="pad" data-pad>
+          <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+          <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+          <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+          <button data-k="del" class="pad-alt">⌫</button><button data-k="0">0</button>
+          <button data-k="ok" class="pad-ok">✓</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== QUIZ ===== -->
+  <section id="m-quiz" class="screen">
+    <div class="card math-card">
+      <div class="quiz-top">
+        <div class="dots-progress" id="quiz-dots"></div>
+      </div>
+      <div class="question" id="quiz-q">3 × 4</div>
+      <div class="feedback" id="quiz-fb"></div>
+
+      <div id="quiz-hint" class="hint-box hidden">
+        <div class="array-grid" id="quiz-array"></div>
+        <div class="skipline" id="quiz-skipline"></div>
+      </div>
+
+      <div class="pad-wrap">
+        <div class="pad-display" id="quiz-display">?</div>
+        <div class="pad" data-pad>
+          <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+          <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+          <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+          <button data-k="del" class="pad-alt">⌫</button><button data-k="0">0</button>
+          <button data-k="ok" class="pad-ok">✓</button>
+        </div>
+      </div>
+      <button id="btn-hint" class="btn btn-ghost">Show me 👀</button>
+    </div>
+  </section>
+
+  <!-- ===== DONE ===== -->
+  <section id="m-done" class="screen">
+    <div class="card math-card">
+      <div class="hippo-logo" id="done-emoji">🎉</div>
+      <h1 id="done-title">Nice work!</h1>
+      <p class="progress-line" id="done-line"></p>
+      <div id="done-unlock" class="unlock-box hidden"></div>
+      <div class="grid-wrap"><div id="done-grid" class="mgrid"></div></div>
+      <p class="muted small" id="done-tip"></p>
+      <button id="btn-again" class="btn btn-primary">Practise again</button>
+      <button id="btn-home" class="btn btn-ghost">Done for today</button>
+    </div>
+  </section>
+
+  <!-- ===== PROGRESS ===== -->
+  <section id="m-progress" class="screen">
+    <div class="card math-card">
+      <h2>My progress</h2>
+      <div class="grid-wrap"><div id="prog-grid" class="mgrid"></div></div>
+      <div class="legend">
+        <span><i class="sw b0"></i>new</span>
+        <span><i class="sw b1"></i>learning</span>
+        <span><i class="sw b3"></i>strong</span>
+        <span><i class="sw b5"></i>mastered</span>
+      </div>
+      <div class="weak-box">
+        <h3>Tricky ones right now</h3>
+        <div id="prog-weak" class="weak-list"></div>
+      </div>
+      <button id="btn-prog-back" class="btn btn-ghost">← Back</button>
+      <button id="btn-reset" class="btn btn-ghost danger">Reset all progress</button>
+    </div>
+  </section>
+
+</div>
+<script src="./math.js"></script>
+</body>
+</html>
