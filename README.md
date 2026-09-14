@@ -168,22 +168,28 @@ Progress is stored per child, under `mlt_math_v1:<name>`, so siblings sharing a 
 separate grids. The login reuses the exam app's `hippo_device` id, so a child logging into
 both apps uses one device slot, not two.
 
-### The daily loop (about 5 minutes)
-1. **Warm up** — skip-count the table being learned, fill three blanks.
-2. **Quick fire** — 10 questions, mixing new facts with reviews that are due.
-3. **Result** — streak, what is still tricky, and the 10x10 mastery grid.
+### Levels, like the exams
+The app is a library of **11 levels**, one per table plus a mixed review at the end, in
+easiest-first order: 2, 5, 10, 1, 4, 3, 6, 9, 8, 7, mixed.
 
-### How it teaches
-- **Facts are commutative.** 3x4 and 4x3 are one fact, so there are 55 to learn, not 100.
-  The grid mirrors across the diagonal, which is how a child sees why.
-- **Leitner spacing.** A miss resets the fact and it returns 3 questions later in the same
-  session, then the next day. Right and fast three times over separate days retires it.
-- **Wrong answers cost nothing.** No penalty: the dot array appears, plus the skip-count line,
-  and the fact is asked again later in the session.
-- **Tables unlock easiest-first:** 2, 5, 10, 1, 4, 3, 6, 9, 8, 7. Later tables go faster
-  because they share facts already learned.
-- A table takes about three days to unlock by design, because a fact has to be recalled
-  correctly on separate days. The progress bar uses part-marks so every session still moves it.
+- A level is **10 questions**, every fact of that table once, in random order and random
+  orientation (3x4 or 4x3). The mixed level is 12 drawn from every table already passed,
+  weakest facts first.
+- **Pass mark is 80%** counted on first attempts, so 8 of 10. Stars: 3 for a clean sweep,
+  2 for 90%, 1 for a pass.
+- **Passing opens the next level straight away.** Nothing waits for the next day.
+- **Any passed level can be replayed** any time, and a failed one retried immediately.
+- Every attempt updates the scores list, and every answer still feeds the mastery grid.
+
+Wrong answers cost nothing: the dot array and the skip-count line appear, and the fact is
+asked again later in the same level. Those repeats do not count towards the pass mark.
+
+### What happened to the spaced repetition
+The first version scheduled facts with Leitner boxes and told a child to come back tomorrow.
+Good for long-term retention, bad for a seven year old with momentum: a second round the same
+day pulled from the same handful of facts and the next table stayed shut for about three days.
+The boxes still run, and still colour the mastery grid and pick the order of the mixed level,
+but nothing is gated on a calendar any more.
 
 ### Notes for editing
 - All copy lives in the `I18N` map at the top of `math.js`. Mongolian first, English second.
@@ -192,4 +198,5 @@ both apps uses one device slot, not two.
   digit, so both tables are listed explicitly. Any new numeral needs a row in each.
 - Fredoka has no Cyrillic, so every display stack falls back to Comfortaa, which does. The
   browser falls back per glyph, so digits stay in Fredoka and Cyrillic text picks up Comfortaa.
-- Progress is `localStorage` under `mlt_math_v1:<name>`, language under `mlt_math_lang`.
+- Progress is `localStorage` under `mlt_math_v1:<name>`, language under `mlt_lang`.
+- Levels live in the `LEVELS` array in `math.js`. Adding one is a single entry.

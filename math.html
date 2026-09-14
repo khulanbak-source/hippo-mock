@@ -36,27 +36,13 @@
     </div>
   </section>
 
-  <!-- ===== HOME ===== -->
+  <!-- ===== LEVEL LIBRARY ===== -->
   <section id="m-home" class="screen">
     <div class="card math-card">
       <div class="hippo-logo">🧮</div>
       <h2 id="home-hi"></h2>
-      <p class="muted" id="home-sub"></p>
-
-      <div class="streak-row">
-        <div class="stat"><span class="stat-num" id="stat-streak">0</span><span class="stat-lbl" data-i18n="lblStreak"></span></div>
-        <div class="stat"><span class="stat-num" id="stat-mastered">0</span><span class="stat-lbl" data-i18n="lblMastered"></span></div>
-        <div class="stat"><span class="stat-num" id="stat-total">55</span><span class="stat-lbl" data-i18n="lblTotal"></span></div>
-      </div>
-
-      <div class="table-banner">
-        <span class="muted small" data-i18n="learningNow"></span>
-        <div class="table-big" id="home-table"></div>
-        <div class="table-bar"><div class="table-bar-fill" id="home-tablebar"></div></div>
-        <span class="small" id="home-tabletxt"></span>
-      </div>
-
-      <button id="btn-start" class="btn btn-primary big" data-i18n="btnStart"></button>
+      <p class="progress-line" id="home-sub"></p>
+      <div id="level-list" class="lvl-list"></div>
       <button id="btn-progress" class="btn btn-ghost" data-i18n="btnProgress"></button>
       <button id="btn-logout" class="btn btn-ghost" data-i18n="btnLogout"></button>
       <a class="back-link" href="/" data-i18n="backSite"></a>
@@ -116,12 +102,13 @@
     <div class="card math-card">
       <div class="hippo-logo" id="done-emoji">🎉</div>
       <h1 id="done-title"></h1>
+      <div class="stars" id="done-stars"></div>
       <p class="progress-line" id="done-line"></p>
       <div id="done-unlock" class="unlock-box hidden"></div>
-      <div class="grid-wrap"><div id="done-grid" class="mgrid"></div></div>
       <p class="muted small" id="done-tip"></p>
-      <button id="btn-again" class="btn btn-primary" data-i18n="btnAgain"></button>
-      <button id="btn-home" class="btn btn-ghost" data-i18n="btnDoneToday"></button>
+      <button id="btn-next" class="btn btn-primary big hidden" data-i18n="btnNext"></button>
+      <button id="btn-again" class="btn btn-ghost" data-i18n="btnAgain"></button>
+      <button id="btn-home" class="btn btn-ghost" data-i18n="btnBackList"></button>
     </div>
   </section>
 
@@ -135,6 +122,10 @@
         <span><i class="sw b1"></i><b data-i18n="legLearning"></b></span>
         <span><i class="sw b3"></i><b data-i18n="legStrong"></b></span>
         <span><i class="sw b5"></i><b data-i18n="legMastered"></b></span>
+      </div>
+      <div class="weak-box">
+        <h3 data-i18n="scoresTitle"></h3>
+        <div id="prog-scores" class="score-list"></div>
       </div>
       <div class="weak-box">
         <h3 data-i18n="trickyTitle"></h3>

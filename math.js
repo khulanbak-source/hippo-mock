@@ -1,21 +1,30 @@
 /* Times Tables / Үржихүйн хүрд · My Little Test
-   A daily 5-minute loop: skip-count warm-up -> 10 quick-fire questions -> mastery grid.
-   Facts are stored commutatively (3x4 and 4x3 are one fact) and scheduled with a
-   Leitner box system, so only the facts he actually misses come back often.
-   All progress lives in localStorage on the device. No login, no network.
-   Bilingual: Mongolian by default, English via the toggle. */
+   Built like the Hippo exams: a library of levels, one per table. Pass a level
+   and the next one opens straight away, replay any level any time, and every
+   attempt is kept in a scores list.
+
+   Facts are still stored commutatively (3x4 and 4x3 are one fact) and every
+   answer updates the mastery grid, but nothing is gated on a calendar any more:
+   a child who wants three levels in one sitting should get three levels.
+   Progress is per child in localStorage. */
 (function () {
   "use strict";
 
   var KEY = "mlt_math_v1", LKEY = "mlt_lang";
-  var ORDER = [2, 5, 10, 1, 4, 3, 6, 9, 8, 7];   // easiest-first mastery ladder
+  var FAST_MS = 5000, PASS_PCT = 80, TOP = 5, STRONG = 3;
   var BOX_MS = [0, 10 * 6e4, 864e5, 3 * 864e5, 7 * 864e5, 21 * 864e5];
-  var STRONG = 3, TOP = 5, FAST_MS = 5000, QN = 10, NEW_PER_SESSION = 4;
-  var TOTAL_FACTS = 55;                           // 1..10 x 1..10, commutative
+  var TOTAL_FACTS = 55;                            // 1..10 x 1..10, commutative
 
-  // Mongolian case endings for digits. A digit written as a numeral still takes the
-  // suffix of the word it is read as, so these cannot be generated, only listed.
-  // Genitive: 2 -> хоёрын -> 2-ын.  Instrumental: 2 -> хоёроор -> 2-оор.
+  // The level library. Easiest table first; the last one mixes everything passed.
+  var LEVELS = [
+    { table: 2 }, { table: 5 }, { table: 10 }, { table: 1 }, { table: 4 },
+    { table: 3 }, { table: 6 }, { table: 9 }, { table: 8 }, { table: 7 },
+    { table: 0, mixed: true, n: 12 }
+  ];
+
+  // Mongolian case endings for digits: a numeral takes the suffix of the word it
+  // is read as, so these cannot be generated. Genitive 2 -> хоёрын -> 2-ын;
+  // instrumental 2 -> хоёроор -> 2-оор.
   var GEN = { 1: "1-ийн", 2: "2-ын", 3: "3-ын", 4: "4-ийн", 5: "5-ын",
               6: "6-гийн", 7: "7-гийн", 8: "8-ын", 9: "9-ийн", 10: "10-ын" };
   var INS = { 1: "1-ээр", 2: "2-оор", 3: "3-аар", 4: "4-өөр", 5: "5-аар",
@@ -25,32 +34,35 @@
     mn: {
       docTitle: "Үржихүйн хүрд · My Little Test",
       appTitle: "Үржихүйн хүрд",
-      tagline: "Өдөрт хэдхэн минут. Тэгээд л болоо.",
-      taglineStreak: "{0} өдөр дараалан хичээллэлээ. Ингээд үргэлжлүүлээрэй!",
-      lblStreak: "өдөр дараалан", lblMastered: "цээжилсэн", lblTotal: "нийт жишээ",
-      learningNow: "Одоо сурч байгаа",
-      tableName: "{0} хүрд",              // {0} = genitive digit, e.g. 2-ын
-      learned: "Сурсан: {0}/{1}",
-      allTables: "🏆 Бүх хүрд!",
-      allTablesTip: "Одоо хурдан болтол нь давтаарай.",
-      btnStart: "Дасгалаа эхлэх",
-      btnProgress: "Ахицаа харах",
+      hiName: "Сайн уу, {0}! 👋",
+      summary: "⭐ Тэнцсэн: {0} / {1} түвшин",
+      allPassed: "🏆 Бүх түвшнийг давлаа! Одоо хурдан болтол нь давтаарай.",
+      lvlName: "{0} хүрд", lvlMixed: "Холимог давтлага",
+      lvlNum: "Түвшин {0}",
+      notStarted: "Эхлээгүй", locked: "Түгжээтэй",
+      bestIs: "Хамгийн сайн: {0}/{1}",
+      tries: "{0} удаа оролдсон",
+      btnStart: "Эхлэх", btnRetry: "Дахиад", btnRedo: "Давтах",
+      btnProgress: "Оноо ба ахиц", btnLogout: "Гарах",
       backSite: "← Бүх хичээл",
       chipWarm: "Бэлтгэл",
-      countBy: "{0} тоол",                // {0} = instrumental digit, e.g. 2-оор
+      countBy: "{0} тоол",
       warmHint: "Дутуу тоог нөхөөрэй.",
       btnHint: "Үзүүлээч 👀",
       okFast: "Зөв! ⚡", okSlow: "Зөв байна! ✅",
       wrong: "{0} × {1} = {2}. Хамтдаа тоолъё.",
-      doneOk: "Сайн байна!", donePerfect: "Алдаагүй!",
-      doneLine: "✅ Шууд зөв: {0}/{1}",
-      doneRetry: "🔁 Дахиж давтах: {0}",
-      doneStreak: "🔥 {0} өдөр дараалан",
-      unlock: "🎊 {0} хүрдийг дуусгалаа! Дараагийнх нь {1} хүрд.",
-      tipTricky: "Дасгал хэрэгтэй: {0}. Маргааш дахиад тааралдана.",
-      tipClean: "Өнөөдрийн жишээгээ сайн цээжиллээ. Маргааш бас ирээрэй!",
-      btnAgain: "Дахиад хийх", btnDoneToday: "Өнөөдөрт болоо",
-      progTitle: "Миний ахиц",
+      donePass: "Тэнцлээ!", doneFail: "Дахиад оролдоё",
+      doneLine: "Шууд зөв: {0}/{1}",
+      unlockNext: "🎊 {0} нээгдлээ!",
+      unlockAll: "🏆 Бүх түвшнийг давлаа!",
+      needPass: "Тэнцэхийн тулд {0} зөв хариулт хэрэгтэй. Чи чадна!",
+      tipTricky: "Хэцүү байсан нь: {0}",
+      tipClean: "Нэг ч алдаагүй. Гоё!",
+      btnNext: "Дараагийн түвшин →",
+      btnAgain: "Энэ түвшнийг дахиад",
+      btnBackList: "← Түвшнүүд рүү",
+      progTitle: "Оноо ба ахиц",
+      scoresTitle: "Миний оноо",
       legNew: "шинэ", legLearning: "сурч байна", legStrong: "сайн", legMastered: "цээжилсэн",
       trickyTitle: "Одоо хэцүү байгаа нь",
       noneTricky: "Хэцүү жишээ алга. 🎈",
@@ -60,8 +72,6 @@
       lblName: "Нэр", lblCode: "Код",
       phName: "Нэрээ бичнэ үү", phCode: "6 оронтой тоо",
       btnLogin: "Нэвтрэх", checking: "Шалгаж байна…",
-      btnLogout: "Гарах",
-      hiName: "Сайн уу, {0}! 👋",
       errInput: "Нэр, кодоо бичээрэй.",
       errWrong: "Нэр эсвэл код буруу байна. Дахин оролдоорой.",
       errCourse: "Энэ кодоор үржихүйн хичээл нээгдээгүй байна.",
@@ -73,16 +83,16 @@
     en: {
       docTitle: "Times Tables · My Little Test",
       appTitle: "Times Tables",
-      tagline: "A few minutes a day. That is all it takes.",
-      taglineStreak: "You have practised {0} days in a row. Keep it going!",
-      lblStreak: "day streak", lblMastered: "mastered", lblTotal: "facts in all",
-      learningNow: "Learning now",
-      tableName: "{0} × table",
-      learned: "Learned: {0}/{1}",
-      allTables: "🏆 All tables!",
-      allTablesTip: "Keep practising to make them lightning fast.",
-      btnStart: "Start today's practice",
-      btnProgress: "See my progress grid",
+      hiName: "Hi {0}! 👋",
+      summary: "⭐ Passed: {0} / {1} levels",
+      allPassed: "🏆 Every level passed! Keep replaying to get lightning fast.",
+      lvlName: "{0} × table", lvlMixed: "Mixed review",
+      lvlNum: "Level {0}",
+      notStarted: "Not started", locked: "Locked",
+      bestIs: "Best: {0}/{1}",
+      tries: "{0} tries",
+      btnStart: "Start", btnRetry: "Try again", btnRedo: "Replay",
+      btnProgress: "Scores and progress", btnLogout: "Log out",
       backSite: "← All subjects",
       chipWarm: "Warm up",
       countBy: "Count by {0}",
@@ -90,15 +100,18 @@
       btnHint: "Show me 👀",
       okFast: "Yes! ⚡", okSlow: "That's right! ✅",
       wrong: "{0} × {1} = {2}. Count them with me.",
-      doneOk: "Nice work!", donePerfect: "Perfect round!",
-      doneLine: "✅ First try: {0}/{1}",
-      doneRetry: "🔁 To practise: {0}",
-      doneStreak: "🔥 {0} day streak",
-      unlock: "🎊 You finished the {0} × table! Next up: the {1} × table.",
-      tipTricky: "Still tricky: {0}. They will come back tomorrow.",
-      tipClean: "Everything you saw today is sticking. Come back tomorrow!",
-      btnAgain: "Practise again", btnDoneToday: "Done for today",
-      progTitle: "My progress",
+      donePass: "Passed!", doneFail: "Nearly there",
+      doneLine: "First try: {0}/{1}",
+      unlockNext: "🎊 {0} is open!",
+      unlockAll: "🏆 Every level passed!",
+      needPass: "You need {0} right to pass. You can do it!",
+      tipTricky: "Tricky ones: {0}",
+      tipClean: "Not a single mistake. Brilliant!",
+      btnNext: "Next level →",
+      btnAgain: "Replay this level",
+      btnBackList: "← Back to levels",
+      progTitle: "Scores and progress",
+      scoresTitle: "My scores",
       legNew: "new", legLearning: "learning", legStrong: "strong", legMastered: "mastered",
       trickyTitle: "Tricky ones right now",
       noneTricky: "Nothing tricky right now. 🎈",
@@ -108,8 +121,6 @@
       lblName: "Your name", lblCode: "Passcode",
       phName: "Type your name", phCode: "6 digits",
       btnLogin: "Log in", checking: "Checking…",
-      btnLogout: "Log out",
-      hiName: "Hi {0}! 👋",
       errInput: "Type your name and passcode.",
       errWrong: "Wrong name or passcode. Try again.",
       errCourse: "This passcode does not include the multiplication course.",
@@ -128,9 +139,6 @@
     for (i = 1; i < arguments.length; i++) s = s.replace("{" + (i - 1) + "}", arguments[i]);
     return s;
   }
-  function tableLabel(n) { return t("tableName", lang === "mn" ? GEN[n] : n); }
-  function countByLabel(n) { return t("countBy", lang === "mn" ? INS[n] : n); }
-
   function $(id) { return document.getElementById(id); }
   function show(id) {
     ["m-login", "m-home", "m-warmup", "m-quiz", "m-done", "m-progress"].forEach(function (s) {
@@ -138,42 +146,44 @@
     });
     window.scrollTo(0, 0);
   }
-  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t2 = a[i]; a[i] = a[j]; a[j] = t2; } return a; }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = a[i]; a[i] = a[j]; a[j] = x; } return a; }
   function dayStr(d) { return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
+  function normName(x) { return (x || "").toString().trim().toLowerCase().replace(/\s+/g, " "); }
 
-  // ================================================================= LANGUAGE
-  function applyLang() {
-    document.documentElement.lang = lang;
-    document.title = t("docTitle");
-    $("btn-lang").textContent = t("other");
-    Array.prototype.forEach.call(document.querySelectorAll("[data-i18n]"), function (el) {
-      el.textContent = t(el.getAttribute("data-i18n"));
-    });
-    $("m-in-name").placeholder = t("phName");
-    $("m-in-code").placeholder = t("phCode");
-    if (userName) $("home-hi").textContent = t("hiName", userName);
+  // ================================================================= LEVELS
+  function levelName(i) {
+    var L = LEVELS[i];
+    if (L.mixed) return t("lvlMixed");
+    return t("lvlName", lang === "mn" ? GEN[L.table] : L.table);
   }
-  function setLang(l) {
-    lang = l;
-    try { localStorage.setItem(LKEY, l); } catch (e) {}
-    applyLang();
+  function levelSize(i) { return LEVELS[i].n || 10; }
+  function passMark(i) { return Math.ceil(levelSize(i) * PASS_PCT / 100); }
+  function levelRec(i) { return S.levels[i] || (S.levels[i] = { best: 0, stars: 0, tries: 0, passed: false }); }
+  function isPassed(i) { return !!(S.levels[i] && S.levels[i].passed); }
+  // Level 0 is always open; after that, passing the one before opens the next.
+  function isOpen(i) { return i === 0 || isPassed(i - 1); }
+  function passedCount() { var n = 0, i; for (i = 0; i < LEVELS.length; i++) if (isPassed(i)) n++; return n; }
+  function starsFor(i, right) {
+    var pct = right / levelSize(i) * 100;
+    if (pct >= 100) return 3;
+    if (pct >= 90) return 2;
+    if (pct >= PASS_PCT) return 1;
+    return 0;
   }
+  function starStr(n) { return "★★★".slice(0, n) + "☆☆☆".slice(0, 3 - n); }
 
   // ================================================================= STORE
-  function normName(s2) { return (s2 || "").toString().trim().toLowerCase().replace(/\s+/g, " "); }
   function progKey() { return user ? KEY + ":" + user : KEY; }
   function load() {
     try { S = JSON.parse(localStorage.getItem(progKey())); } catch (e) { S = null; }
-    // One-time adopt of progress saved before logins existed, so nothing is lost.
-    // Claimed by the first user to log in, so a sibling does not inherit it too.
     if ((!S || !S.facts) && user && !localStorage.getItem(KEY + ":claimed")) {
       try {
         var legacy = JSON.parse(localStorage.getItem(KEY));
         if (legacy && legacy.facts) { S = legacy; localStorage.setItem(KEY + ":claimed", user); }
       } catch (e2) {}
     }
-    if (!S || !S.facts) S = { v: 1, facts: {}, tableIdx: 0, streak: 0, lastDay: "", sessions: 0 };
-    syncTable();
+    if (!S || !S.facts) S = { v: 2, facts: {}, levels: {}, streak: 0, lastDay: "", sessions: 0 };
+    if (!S.levels) S.levels = {};      // upgrade from the daily-practice version
     return S;
   }
   function save() { try { localStorage.setItem(progKey(), JSON.stringify(S)); } catch (e) {} }
@@ -181,27 +191,9 @@
   function fk(a, b) { return Math.min(a, b) + "x" + Math.max(a, b); }
   function fact(k) { return S.facts[k] || (S.facts[k] = { box: 0, due: 0, seen: 0, wrong: 0 }); }
   function box(k) { return S.facts[k] ? S.facts[k].box : 0; }
-  function tableFacts(t2) { var o = [], b; for (b = 1; b <= 10; b++) o.push(fk(t2, b)); return o; }
-  function tableDone(t2) { return tableFacts(t2).every(function (k) { return box(k) >= STRONG; }); }
-  function curTable() { return ORDER[Math.min(S.tableIdx, ORDER.length - 1)]; }
-  function allDone() { return ORDER.every(tableDone); }
-  function syncTable() {
-    while (S.tableIdx < ORDER.length - 1 && tableDone(ORDER[S.tableIdx])) S.tableIdx++;
-  }
-  function unlockedFacts() {
-    var seen = {};
-    ORDER.slice(0, S.tableIdx + 1).forEach(function (t2) { tableFacts(t2).forEach(function (k) { seen[k] = 1; }); });
-    return Object.keys(seen);
-  }
+  function tableFacts(tb) { var o = [], b; for (b = 1; b <= 10; b++) o.push(fk(tb, b)); return o; }
   function masteredCount() {
     return Object.keys(S.facts).filter(function (k) { return S.facts[k].box >= TOP; }).length;
-  }
-  function tableProgress(t2) {
-    // "done" drives unlocking; the bar uses part-marks so a good session always moves it,
-    // even though a fact needs spaced repeats across days to count as learned.
-    var f = tableFacts(t2), n = 0, pts = 0;
-    f.forEach(function (k) { var b = Math.min(box(k), STRONG); pts += b; if (b >= STRONG) n++; });
-    return { done: n, total: f.length, pct: Math.round(pts / (f.length * STRONG) * 100) };
   }
 
   // ================================================================= SOUND
@@ -223,54 +215,61 @@
   function sndNo() { beep([200], 0.22); }
   function sndWin() { beep([523, 659, 784, 1047], 0.13); }
 
-  // ================================================================= HOME
+  // ================================================================= LIBRARY
   function renderHome() {
-    var t2 = curTable(), p = tableProgress(t2);
-    $("stat-streak").textContent = S.streak;
-    $("stat-mastered").textContent = masteredCount();
-    $("stat-total").textContent = TOTAL_FACTS;
-    if (allDone()) {
-      $("home-table").textContent = t("allTables");
-      $("home-tabletxt").textContent = t("allTablesTip");
-      $("home-tablebar").style.width = "100%";
-    } else {
-      $("home-table").textContent = tableLabel(t2);
-      $("home-tabletxt").textContent = t("learned", p.done, p.total);
-      $("home-tablebar").style.width = p.pct + "%";
-    }
-    $("home-sub").textContent = S.streak > 0 ? t("taglineStreak", S.streak) : t("tagline");
     $("home-hi").textContent = t("hiName", userName);
+    var n = passedCount(), total = LEVELS.length;
+    $("home-sub").textContent = n === total ? t("allPassed") : t("summary", n, total);
+
+    $("level-list").innerHTML = LEVELS.map(function (L, i) {
+      var open = isOpen(i), rec = S.levels[i], size = levelSize(i);
+      var meta = !open ? t("locked")
+        : (rec && rec.tries
+            ? starStr(rec.stars) + "  ·  " + t("bestIs", rec.best, size) + "  ·  " + t("tries", rec.tries)
+            : t("notStarted"));
+      var action = !open ? "🔒"
+        : (isPassed(i) ? t("btnRedo") : (rec && rec.tries ? t("btnRetry") : t("btnStart")));
+      return '<button class="lvl' + (open ? "" : " locked") + (isPassed(i) ? " passed" : "") + '"' +
+        (open ? '' : ' disabled') + ' data-i="' + i + '">' +
+        '<span class="lvl-num">' + (i + 1) + '</span>' +
+        '<span class="lvl-body"><span class="lvl-name">' + levelName(i) + '</span>' +
+        '<span class="lvl-meta">' + meta + '</span></span>' +
+        '<span class="lvl-go">' + action + '</span></button>';
+    }).join("");
+
+    Array.prototype.forEach.call($("level-list").querySelectorAll(".lvl:not(.locked)"), function (b) {
+      b.addEventListener("click", function () { startLevel(parseInt(b.getAttribute("data-i"), 10)); });
+    });
     show("m-home");
   }
 
   // ================================================================= WARM UP
-  function startWarmup() {
-    var t2 = curTable(), seq = [], i;
-    for (i = 1; i <= 10; i++) seq.push(t2 * i);
-    var slots = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]).slice(0, 3).sort(function (a, b) { return a - b; });
-    warm = { t: t2, seq: seq, blanks: slots, at: 0 };
-    $("warm-title").textContent = countByLabel(t2);
+  function startLevel(i) {
+    sess = { lvl: i, q: buildQueue(i), idx: 0, size: levelSize(i), right: 0, firstRight: 0, wrong: 0, t0: 0, missed: [] };
+    if (LEVELS[i].mixed) { startQuiz(); return; }      // no skip-count for the mixed level
+    var tb = LEVELS[i].table, seq = [], j;
+    for (j = 1; j <= 10; j++) seq.push(tb * j);
+    warm = { t: tb, seq: seq, blanks: shuffle([1,2,3,4,5,6,7,8,9]).slice(0, 3).sort(function (a, b) { return a - b; }), at: 0 };
+    $("warm-title").textContent = countByLabel(tb);
     buf = ""; padMode = "warm";
     renderLadder();
     show("m-warmup");
   }
+  function countByLabel(n) { return t("countBy", lang === "mn" ? INS[n] : n); }
   function renderLadder() {
-    var h = "";
-    warm.seq.forEach(function (n, i) {
+    $("warm-ladder").innerHTML = warm.seq.map(function (n, i) {
       var bi = warm.blanks.indexOf(i);
-      if (bi < 0) h += '<div class="rung">' + n + "</div>";
-      else if (bi < warm.at) h += '<div class="rung filled">' + n + "</div>";
-      else if (bi === warm.at) h += '<div class="rung blank on">' + (buf || "?") + "</div>";
-      else h += '<div class="rung blank">?</div>';
-    });
-    $("warm-ladder").innerHTML = h;
+      if (bi < 0) return '<div class="rung">' + n + "</div>";
+      if (bi < warm.at) return '<div class="rung filled">' + n + "</div>";
+      if (bi === warm.at) return '<div class="rung blank on">' + (buf || "?") + "</div>";
+      return '<div class="rung blank">?</div>';
+    }).join("");
     $("warm-display").textContent = buf || "?";
     $("warm-display").classList.toggle("empty", !buf);
   }
   function warmSubmit() {
     if (!buf) return;
-    var want = warm.seq[warm.blanks[warm.at]];
-    if (parseInt(buf, 10) === want) {
+    if (parseInt(buf, 10) === warm.seq[warm.blanks[warm.at]]) {
       sndOk(); warm.at++; buf = "";
       if (warm.at >= warm.blanks.length) { renderLadder(); setTimeout(startQuiz, 500); return; }
     } else { sndNo(); buf = ""; }
@@ -283,40 +282,40 @@
     if (Math.random() < 0.5) { var s = a; a = b; b = s; }
     return { k: k, a: a, b: b, ans: a * b, retry: false };
   }
-  function buildQueue() {
-    var now = Date.now(), t2 = curTable(), keys = unlockedFacts(), q = [];
-    var fresh = tableFacts(t2).filter(function (k) { return !S.facts[k] || S.facts[k].seen === 0; });
-    fresh.slice(0, NEW_PER_SESSION).forEach(function (k) { q.push(k); });
-    keys.filter(function (k) { var f = S.facts[k]; return f && f.seen > 0 && f.due <= now; })
-      .sort(function (a, b) { return S.facts[a].due - S.facts[b].due; })
-      .forEach(function (k) { if (q.length < QN && q.indexOf(k) < 0) q.push(k); });
-    if (q.length < QN) {
-      keys.filter(function (k) { return q.indexOf(k) < 0; })
-        .sort(function (a, b) { return (box(a) - box(b)) || Math.random() - 0.5; })
-        .forEach(function (k) { if (q.length < QN) q.push(k); });
+  function buildQueue(i) {
+    var L = LEVELS[i], keys;
+    if (!L.mixed) {
+      keys = tableFacts(L.table);                       // all ten facts of the table
+    } else {
+      // Everything from the levels already passed, weakest first, then a random slice.
+      var seen = {};
+      LEVELS.forEach(function (lv, j) {
+        if (!lv.mixed && isPassed(j)) tableFacts(lv.table).forEach(function (k) { seen[k] = 1; });
+      });
+      keys = Object.keys(seen);
+      if (!keys.length) keys = tableFacts(2);
+      keys.sort(function (a, b) { return (box(a) - box(b)) || Math.random() - 0.5; });
+      keys = keys.slice(0, levelSize(i));
     }
-    return shuffle(q).map(mkQ);
+    return shuffle(keys.slice()).map(mkQ);
   }
   function startQuiz() {
-    sess = { q: buildQueue(), i: 0, total: QN, right: 0, firstRight: 0, wrong: 0, t0: 0 };
     padMode = "quiz"; buf = "";
-    nextQ();
-    show("m-quiz");
+    nextQ(); show("m-quiz");
   }
   function renderDots() {
-    var h = "", i, n = sess.total;
-    for (i = 0; i < n; i++) h += "<i class='" + (i < sess.right ? "on" : (i === sess.right ? "cur" : "")) + "'></i>";
+    var h = "", i;
+    for (i = 0; i < sess.size; i++) h += "<i class='" + (i < sess.right ? "on" : (i === sess.right ? "cur" : "")) + "'></i>";
     $("quiz-dots").innerHTML = h;
   }
   function nextQ() {
-    if (sess.i >= sess.q.length) { finish(); return; }
-    var q = sess.q[sess.i];
+    if (sess.idx >= sess.q.length) { finish(); return; }
+    var q = sess.q[sess.idx];
     $("quiz-q").textContent = q.a + " × " + q.b;
     $("quiz-fb").textContent = ""; $("quiz-fb").className = "feedback";
     $("quiz-hint").classList.add("hidden");
     $("btn-hint").classList.remove("hidden");
-    buf = ""; paint();
-    renderDots();
+    buf = ""; paint(); renderDots();
     sess.t0 = Date.now();
   }
   function paint() {
@@ -334,19 +333,25 @@
     $("quiz-skipline").textContent = countByLabel(b) + ": " + line.join(", ");
     $("quiz-hint").classList.remove("hidden");
   }
+  function grade(k, ok, ms) {
+    var f = fact(k); f.seen++;
+    if (ok) {
+      f.box = ms < FAST_MS ? Math.min(f.box + 1, TOP) : Math.max(f.box, 1);
+      f.due = Date.now() + BOX_MS[f.box];
+    } else { f.wrong++; f.box = 0; f.due = Date.now(); }
+  }
   function quizSubmit() {
     if (!buf) return;
-    var q = sess.q[sess.i], ms = Date.now() - sess.t0, ok = parseInt(buf, 10) === q.ans;
+    var q = sess.q[sess.idx], ms = Date.now() - sess.t0, ok = parseInt(buf, 10) === q.ans;
     if (ok) {
       if (!q.retry) { grade(q.k, true, ms); sess.firstRight++; }
-      sess.right++;
-      sndOk();
+      sess.right++; sndOk();
       $("quiz-fb").className = "feedback ok";
       $("quiz-fb").textContent = ms < FAST_MS ? t("okFast") : t("okSlow");
-      save(); sess.i++;
+      save(); sess.idx++;
       setTimeout(nextQ, 650);
     } else {
-      if (!q.retry) { grade(q.k, false, ms); sess.wrong++; }
+      if (!q.retry) { grade(q.k, false, ms); sess.wrong++; sess.missed.push(q.k); }
       sndNo();
       $("quiz-q").classList.add("shake");
       setTimeout(function () { $("quiz-q").classList.remove("shake"); }, 420);
@@ -356,19 +361,11 @@
       $("btn-hint").classList.add("hidden");
       if (!q.retry) {
         var again = mkQ(q.k); again.retry = true;
-        sess.q.splice(Math.min(sess.i + 3, sess.q.length), 0, again);
+        sess.q.splice(Math.min(sess.idx + 3, sess.q.length), 0, again);
       }
-      buf = ""; paint();
-      save(); sess.i++;
+      buf = ""; paint(); save(); sess.idx++;
       setTimeout(nextQ, 2600);
     }
-  }
-  function grade(k, ok, ms) {
-    var f = fact(k); f.seen++;
-    if (ok) {
-      f.box = ms < FAST_MS ? Math.min(f.box + 1, TOP) : Math.max(f.box, 1);
-      f.due = Date.now() + BOX_MS[f.box];
-    } else { f.wrong++; f.box = 0; f.due = Date.now(); }
   }
 
   // ================================================================= FINISH
@@ -378,44 +375,44 @@
     S.streak = (S.lastDay === yday) ? S.streak + 1 : 1;
     S.lastDay = today;
   }
+  function pretty(k) { var p = k.split("x"); return p[0] + "×" + p[1]; }
   function finish() {
-    var before = curTable();
-    touchDay(); S.sessions++;
-    syncTable(); save();
-    var unlocked = curTable() !== before;
+    var i = sess.lvl, size = sess.size, right = sess.firstRight;
+    var passed = right >= passMark(i), rec = levelRec(i), wasPassed = rec.passed;
+    var stars = starsFor(i, right);
 
-    $("done-emoji").textContent = unlocked ? "🏅" : (sess.wrong === 0 ? "🌟" : "🎉");
-    $("done-title").textContent = sess.wrong === 0 ? t("donePerfect") : t("doneOk");
-    var parts = [t("doneLine", sess.firstRight, sess.total)];
-    if (sess.wrong) parts.push(t("doneRetry", sess.wrong));
-    parts.push(t("doneStreak", S.streak));
-    $("done-line").textContent = parts.join("  ·  ");
+    rec.tries++;
+    if (right > rec.best) rec.best = right;
+    if (stars > rec.stars) rec.stars = stars;
+    if (passed) rec.passed = true;
+    touchDay(); S.sessions++; save();
 
-    var ub = $("done-unlock");
-    if (unlocked) {
-      ub.textContent = lang === "mn"
-        ? t("unlock", GEN[before], GEN[curTable()])
-        : t("unlock", before, curTable());
+    $("done-emoji").textContent = passed ? (stars === 3 ? "🌟" : "🏅") : "💪";
+    $("done-title").textContent = passed ? t("donePass") : t("doneFail");
+    $("done-stars").textContent = passed ? starStr(stars) : "";
+    $("done-line").textContent = t("doneLine", right, size);
+
+    var ub = $("done-unlock"), next = i + 1;
+    if (passed && !wasPassed && next < LEVELS.length) {
+      ub.textContent = t("unlockNext", levelName(next));
       ub.classList.remove("hidden"); sndWin();
-    } else ub.classList.add("hidden");
+    } else if (passed && next >= LEVELS.length) {
+      ub.textContent = t("unlockAll");
+      ub.classList.remove("hidden"); sndWin();
+    } else { ub.classList.add("hidden"); }
 
-    drawGrid($("done-grid"));
-    var weak = weakest(3);
-    $("done-tip").textContent = weak.length ? t("tipTricky", weak.map(pretty).join(", ")) : t("tipClean");
+    $("done-tip").textContent = sess.missed.length
+      ? t("tipTricky", sess.missed.slice(0, 4).map(pretty).join(", "))
+      : (passed ? t("tipClean") : t("needPass", passMark(i)));
+
+    // Next level only when it exists and is actually open now.
+    var canNext = next < LEVELS.length && isOpen(next);
+    $("btn-next").classList.toggle("hidden", !canNext);
+    sess.next = canNext ? next : -1;
     show("m-done");
   }
-  function pretty(k) { var p = k.split("x"); return p[0] + "×" + p[1]; }
-  function weakest(n) {
-    return unlockedFacts()
-      .filter(function (k) {
-        var f = S.facts[k];
-        return f && f.seen > 0 && f.box < 2 && (f.wrong > 0 || f.box === 0);
-      })
-      .sort(function (a, b) { return (box(a) - box(b)) || (S.facts[b].wrong - S.facts[a].wrong); })
-      .slice(0, n);
-  }
 
-  // ================================================================= GRID
+  // ================================================================= PROGRESS
   function drawGrid(el) {
     var h = "<span class='hd'>×</span>", r, c;
     for (c = 1; c <= 10; c++) h += "<span class='hd'>" + c + "</span>";
@@ -425,13 +422,43 @@
     }
     el.innerHTML = h;
   }
+  function weakest(n) {
+    var seen = {};
+    LEVELS.forEach(function (L, j) {
+      if (!L.mixed && (isOpen(j) || isPassed(j))) tableFacts(L.table).forEach(function (k) { seen[k] = 1; });
+    });
+    return Object.keys(seen)
+      .filter(function (k) { var f = S.facts[k]; return f && f.seen > 0 && f.box < 2 && (f.wrong > 0 || f.box === 0); })
+      .sort(function (a, b) { return (box(a) - box(b)) || (S.facts[b].wrong - S.facts[a].wrong); })
+      .slice(0, n);
+  }
   function renderProgress() {
     drawGrid($("prog-grid"));
+    $("prog-scores").innerHTML = LEVELS.map(function (L, i) {
+      var rec = S.levels[i], size = levelSize(i);
+      var right = rec && rec.tries
+        ? starStr(rec.stars) + " " + rec.best + "/" + size
+        : (isOpen(i) ? t("notStarted") : "🔒");
+      return '<div class="score-row"><span class="sr-name">' + (i + 1) + ". " + levelName(i) + "</span>" +
+        '<span class="sr-val">' + right + "</span></div>";
+    }).join("");
     var w = weakest(12);
     $("prog-weak").innerHTML = w.length
       ? w.map(function (k) { return "<span>" + pretty(k) + "</span>"; }).join("")
       : "<span class='none'>" + t("noneTricky") + "</span>";
     show("m-progress");
+  }
+
+  // ================================================================= LANGUAGE
+  function applyLang() {
+    document.documentElement.lang = lang;
+    document.title = t("docTitle");
+    $("btn-lang").textContent = t("other");
+    Array.prototype.forEach.call(document.querySelectorAll("[data-i18n]"), function (el) {
+      el.textContent = t(el.getAttribute("data-i18n"));
+    });
+    $("m-in-name").placeholder = t("phName");
+    $("m-in-code").placeholder = t("phCode");
   }
 
   // ================================================================= INPUT
@@ -454,19 +481,17 @@
     padMode === "warm" ? renderLadder() : paint();
   });
 
-  $("btn-lang").addEventListener("click", function () {
-    setLang(lang === "mn" ? "en" : "mn");
-    var active = document.querySelector(".screen.active").id;
-    if (active === "m-home") renderHome();
-    else if (active === "m-progress") renderProgress();
-    else if (active === "m-warmup") { $("warm-title").textContent = countByLabel(warm.t); }
-  });
   function loginErr(reason) {
     if (reason === "notconfigured") return t("errSetup");
     if (reason === "nocourse") return t("errCourse");
     if (reason === "otherdevice") return t("errDevice");
     if (reason === "network") return t("errNet");
     return t("errWrong");
+  }
+  function enter(name, tok) {
+    token = tok || ""; userName = name; user = normName(name);
+    $("m-in-code").value = "";
+    load(); renderHome();
   }
   $("m-login-form").addEventListener("submit", function (e) {
     e.preventDefault();
@@ -475,53 +500,48 @@
     var btn = $("m-btn-login");
     btn.disabled = true; btn.textContent = t("checking");
     msg.className = "form-msg"; msg.textContent = "";
-    window.MLT.login(name, code, "Multi")
-      .then(function (res) {
-        btn.disabled = false; btn.textContent = t("btnLogin");
-        if (res && res.ok && res.token) {
-          window.MLT.save(res, name);
-          window.MLT.remember(name, code);
-          enter(res.name || name, res.token);
-        } else {
-          msg.className = "form-msg err";
-          msg.textContent = loginErr(res && res.reason);
-        }
-      });
+    window.MLT.login(name, code, "Multi").then(function (res) {
+      btn.disabled = false; btn.textContent = t("btnLogin");
+      if (res && res.ok && res.token) {
+        window.MLT.save(res, name);
+        window.MLT.remember(name, code);
+        enter(res.name || name, res.token);
+      } else {
+        msg.className = "form-msg err";
+        msg.textContent = loginErr(res && res.reason);
+      }
+    });
   });
+
   $("btn-logout").addEventListener("click", function () {
-    window.MLT.clear();
-    window.MLT.forget();
-    window.location.href = "/";
+    window.MLT.clear(); window.MLT.forget(); window.location.href = "/";
   });
-  function enter(name, tok) {
-    token = tok || "";
-    userName = name;
-    user = normName(name);
-    $("m-in-code").value = "";
-    load();
-    renderHome();
-  }
-  $("btn-start").addEventListener("click", startWarmup);
   $("btn-progress").addEventListener("click", renderProgress);
   $("btn-prog-back").addEventListener("click", renderHome);
-  $("btn-again").addEventListener("click", startWarmup);
   $("btn-home").addEventListener("click", renderHome);
-  $("btn-hint").addEventListener("click", function () {
-    var q = sess.q[sess.i]; drawArray(q.a, q.b);
-  });
+  $("btn-again").addEventListener("click", function () { startLevel(sess.lvl); });
+  $("btn-next").addEventListener("click", function () { if (sess.next >= 0) startLevel(sess.next); });
+  $("btn-hint").addEventListener("click", function () { drawArray(sess.q[sess.idx].a, sess.q[sess.idx].b); });
   $("btn-reset").addEventListener("click", function () {
     if (!window.confirm(t("confirmReset"))) return;
     localStorage.removeItem(progKey()); S = null; load(); renderHome();
+  });
+  $("btn-lang").addEventListener("click", function () {
+    lang = (lang === "mn") ? "en" : "mn";
+    try { localStorage.setItem(LKEY, lang); } catch (e) {}
+    applyLang();
+    var active = document.querySelector(".screen.active").id;
+    if (active === "m-home") renderHome();
+    else if (active === "m-progress") renderProgress();
+    else if (active === "m-warmup") $("warm-title").textContent = countByLabel(warm.t);
   });
 
   try { lang = localStorage.getItem(LKEY) || "mn"; } catch (e) { lang = "mn"; }
   if (lang !== "en" && lang !== "mn") lang = "mn";
   applyLang();
-  // Arriving from the library hub: already logged in, so go straight to practice.
   (function boot() {
-    var s2 = window.MLT && window.MLT.get();
-    if (s2 && (s2.courses || []).indexOf("Multi") >= 0) { enter(s2.name, s2.token); return; }
-    // Same device as last time: fill the form in so it is one tap, not typing.
+    var s = window.MLT && window.MLT.get();
+    if (s && (s.courses || []).indexOf("Multi") >= 0) { enter(s.name, s.token); return; }
     window.MLT.prefill($("m-in-name"), $("m-in-code"));
     show("m-login");
   })();
