@@ -480,6 +480,7 @@
         btn.disabled = false; btn.textContent = t("btnLogin");
         if (res && res.ok && res.token) {
           window.MLT.save(res, name);
+          window.MLT.remember(name, code);
           enter(res.name || name, res.token);
         } else {
           msg.className = "form-msg err";
@@ -489,6 +490,7 @@
   });
   $("btn-logout").addEventListener("click", function () {
     window.MLT.clear();
+    window.MLT.forget();
     window.location.href = "/";
   });
   function enter(name, tok) {
@@ -519,6 +521,8 @@
   (function boot() {
     var s2 = window.MLT && window.MLT.get();
     if (s2 && (s2.courses || []).indexOf("Multi") >= 0) { enter(s2.name, s2.token); return; }
+    // Same device as last time: fill the form in so it is one tap, not typing.
+    window.MLT.prefill($("m-in-name"), $("m-in-code"));
     show("m-login");
   })();
 })();

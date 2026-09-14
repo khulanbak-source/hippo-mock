@@ -100,7 +100,10 @@
     render();
   }
 
-  $("h-logout").addEventListener("click", function () { window.MLT.clear(); render(); });
+  // Logging out anywhere also makes the device forget the passcode.
+  $("h-logout").addEventListener("click", function () {
+    window.MLT.clear(); window.MLT.forget(); render();
+  });
   $("btn-lang").addEventListener("click", function () {
     lang = (lang === "mn") ? "en" : "mn";
     try { localStorage.setItem(LKEY, lang); } catch (e) {}

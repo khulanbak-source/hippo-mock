@@ -7,7 +7,7 @@
    The server token is valid for 4h, and we expire our copy on the same clock. */
 (function (w) {
   "use strict";
-  var KEY = "mlt_session", DEVKEY = "hippo_device", TTL = 4 * 3600 * 1000;
+  var KEY = "mlt_session", DEVKEY = "hippo_device", RKEY = "mlt_remember", TTL = 4 * 3600 * 1000;
 
   function read() {
     try {
@@ -30,6 +30,30 @@
       return s;
     },
     clear: function () { try { sessionStorage.removeItem(KEY); } catch (e) {} },
+
+    // "Remember on this device": the name and passcode are kept in localStorage so a
+    // child only has to tap Log in. Logging out forgets them again. This is a small
+    // plaintext credential on a family device, which is the trade for a daily habit:
+    // anyone holding the device can open the apps until someone taps Log out.
+    remembered: function () {
+      try {
+        var r = JSON.parse(localStorage.getItem(RKEY));
+        if (r && r.name && r.code) return r;
+      } catch (e) {}
+      return null;
+    },
+    remember: function (name, code) {
+      try { localStorage.setItem(RKEY, JSON.stringify({ name: name, code: code })); } catch (e) {}
+    },
+    forget: function () { try { localStorage.removeItem(RKEY); } catch (e) {} },
+
+    // Prefill a login form from what this device remembers. Returns true if it filled in.
+    prefill: function (nameEl, codeEl) {
+      var r = this.remembered();
+      if (!r || !nameEl || !codeEl) return false;
+      nameEl.value = r.name; codeEl.value = r.code;
+      return true;
+    },
     has: function (course) {
       var s = read();
       return !!s && (s.courses || []).indexOf(course) >= 0;

@@ -24,6 +24,21 @@ Notion, and the tile appears for anyone whose row carries it. Set `soon: true` i
 `course` to advertise something before it is built.
 
 ### One login for the whole library
+### Remembering the passcode on a device
+After a successful login the child's name and passcode are kept in `localStorage` under
+`mlt_remember`, and both login forms prefill from it. The next sitting is one tap on **Log in**
+with no typing, which is what makes a daily habit survive contact with a 7 year old.
+
+**Log out** (on any screen) forgets them again, and is the way to hand the device to a sibling
+or stop it remembering. A second child simply logging in overwrites the first.
+
+The trade: the passcode sits in plaintext in that browser's storage, so anyone holding the
+device can open the apps until someone taps Log out. For practice material on a family tablet
+that is the right trade; it is not a password worth protecting harder than the device itself.
+Never put the name and code in the URL instead. URLs get shared, screenshotted, and written
+into history and server logs, which leaks the code the moment the link travels.
+
+### One login for the whole library
 `session.js` keeps the signed token in **`sessionStorage`** under `mlt_session`. Signing in
 at one subject signs you in at the others, so tapping a second tile does not ask again.
 sessionStorage, not localStorage, on purpose: the session dies when the tab closes, so it is

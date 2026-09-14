@@ -65,6 +65,7 @@
     window.MLT.login(name, code, "Hippo").then(function (res) {
       if (res && res.ok && res.token) {
         window.MLT.save(res, name);
+        window.MLT.remember(name, code);
         state.token = res.token; state.courses = res.courses || [];
         loadAll(res.name || name, btn);
       }
@@ -100,7 +101,7 @@
     var n = passedCount(), total = state.exams.length;
     $("progress-line").textContent = allPassed() ? ("🏆 You passed all " + total + " exams!") : ("⭐ Passed: " + n + " / " + total + " exams");
   }
-  $("btn-logout").addEventListener("click", function () { window.MLT.clear(); window.location.href = "/"; });
+  $("btn-logout").addEventListener("click", function () { window.MLT.clear(); window.MLT.forget(); window.location.href = "/"; });
 
   // =================================================================== MY SCORES
   $("btn-scores").addEventListener("click", openScores);
@@ -342,6 +343,8 @@
       loadAll(s.name, null);
       return;
     }
+    // Same device as last time: fill the form in so it is one tap, not typing.
+    window.MLT.prefill($("in-name"), $("in-code"));
     show("screen-login");
   })();
 })();
