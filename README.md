@@ -5,9 +5,17 @@ Live at **mylittletest.urstory.studio**.
 
 | Path | What it is | Unlocked by |
 |---|---|---|
-| `/` | The library: one login, then a tile per subject | any valid passcode |
+| `/` | The library. **Public**: every subject is visible without signing in | nothing |
 | `/hippo` | Hippo English Olympiad mock exams | `Course` = `Hippo` |
 | `/math` | Times tables / Үржихүйн хүрд | `Course` = `Multi` |
+
+### The homepage is deliberately public
+Browse first, sign in second. A visitor sees the whole catalogue, taps a subject, and that
+subject asks for the passcode. Putting the login first would hide the catalogue behind it and
+waste the one screen where you can show someone what else you offer.
+
+Once a child is signed in, the same homepage greets them by name and marks the subjects their
+passcode does not carry with a padlock, so a parent can see what to ask for.
 
 ### Adding a subject
 One entry in the `SUBJECTS` array at the top of `hub.js`: an emoji, a path, MN and EN
@@ -16,12 +24,12 @@ Notion, and the tile appears for anyone whose row carries it. Set `soon: true` i
 `course` to advertise something before it is built.
 
 ### One login for the whole library
-`session.js` keeps the signed token in **`sessionStorage`** under `mlt_session`, so the hub
-logs a child in once and both apps read it. sessionStorage, not localStorage, on purpose:
-the session dies when the tab closes, so it is one login per sitting rather than a login
-remembered for days. Deep-linking to `/hippo` or `/math` without a session still shows that
-app's own login form, so bookmarks keep working. The device id lives in `MLT.device()` and is
-shared, so a child using two subjects still costs only one of their two device slots.
+`session.js` keeps the signed token in **`sessionStorage`** under `mlt_session`. Signing in
+at one subject signs you in at the others, so tapping a second tile does not ask again.
+sessionStorage, not localStorage, on purpose: the session dies when the tab closes, so it is
+one login per sitting rather than a login remembered for days. The device id lives in
+`MLT.device()` and is shared, so a child using two subjects still costs only one of their two
+device slots.
 
 `vercel.json` sets `cleanUrls`, which is what serves `hippo.html` at `/hippo`.
 

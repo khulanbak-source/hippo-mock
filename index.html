@@ -15,36 +15,19 @@
 <div id="app">
   <button id="btn-lang" class="lang-toggle" type="button">EN</button>
 
-  <!-- ===== LOGIN ===== -->
-  <section id="h-login" class="screen active">
-    <div class="card login-card">
+  <!-- ===== LIBRARY (public: no login needed to browse) ===== -->
+  <section id="h-library" class="screen active">
+    <div class="card library-card">
       <div class="hippo-logo">🎒</div>
       <h1>My Little Test</h1>
-      <p class="muted" data-i18n="loginSub"></p>
-      <form id="h-login-form" autocomplete="off">
-        <label for="h-name" data-i18n="lblName"></label>
-        <input id="h-name" name="name" type="text" autocomplete="off" autocapitalize="words"
-               autocorrect="off" spellcheck="false" required />
-        <label for="h-code" data-i18n="lblCode"></label>
-        <input id="h-code" name="code" type="text" inputmode="numeric" pattern="[0-9]*"
-               autocomplete="off" required />
-        <button type="submit" id="h-btn-login" class="btn btn-primary big" data-i18n="btnLogin"></button>
-        <p id="h-msg" class="form-msg" role="status"></p>
-      </form>
+      <p class="muted" id="h-tagline"></p>
+      <div id="h-tiles" class="tiles"></div>
+      <p class="muted small" id="h-note"></p>
+      <button id="h-logout" class="btn btn-ghost hidden" data-i18n="btnLogout"></button>
       <p class="disclaimer" data-i18n="disclaimer"></p>
     </div>
   </section>
 
-  <!-- ===== LIBRARY ===== -->
-  <section id="h-library" class="screen">
-    <div class="card library-card">
-      <h2 id="h-hi"></h2>
-      <p class="muted small" data-i18n="pickSub"></p>
-      <div id="h-tiles" class="tiles"></div>
-      <p class="muted small" id="h-locked-note"></p>
-      <button id="h-logout" class="btn btn-ghost" data-i18n="btnLogout"></button>
-    </div>
-  </section>
 </div>
 <script src="./session.js"></script>
 <script src="./hub.js"></script>

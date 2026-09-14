@@ -175,6 +175,5 @@ input[type=text]:focus{border-color:var(--green);background:#fff}
   .timer{font-size:20px;min-width:84px}
 }
 
-.subject-jump{display:block;margin:16px 0 0;padding:12px;border:2px dashed var(--stone);border-radius:14px;
-  text-decoration:none;color:var(--green);font-family:'Fredoka',sans-serif;font-weight:600;font-size:16px}
-.subject-jump:hover{border-color:var(--green);background:#f3f8f6}
+.back-link{display:inline-block;margin-top:16px;color:#8a807a;font-size:14px;text-decoration:none;font-weight:700}
+.back-link:hover{color:var(--green)}
