@@ -11,8 +11,9 @@ const { sign } = require("./_lib/auth");
 const NOTION_DB_ID = process.env.NOTION_DB_ID || "37b5bc947e198011a3c5e3553b795f52";
 const NOTION_VERSION = "2022-06-28";
 
-function okToken(name, device, batch, category) {
-  return sign({ n: name, d: device || "", b: batch || 1, c: category || "Little Hippo" }); // 4h token
+function okToken(name, device, batch, category, courses) {
+  return sign({ n: name, d: device || "", b: batch || 1, c: category || "Little Hippo",
+                k: courses || ["Hippo"] }); // 4h token
 }
 
 function normName(s) {
@@ -21,6 +22,10 @@ function normName(s) {
 function readRichText(prop) {
   const arr = (prop && prop.rich_text) || [];
   return arr.map((t) => t.plain_text).join("").trim();
+}
+function readMultiSelect(prop) {
+  const arr = (prop && prop.multi_select) || [];
+  return arr.map((o) => o.name).filter(Boolean);
 }
 
 module.exports = async (req, res) => {
@@ -39,6 +44,9 @@ module.exports = async (req, res) => {
   const name = (body && body.name ? body.name : "").toString().trim();
   const codeRaw = (body && body.code != null ? body.code : "").toString().trim();
   const device = (body && body.device ? body.device : "").toString().trim().slice(0, 60);
+  // Which course the client is asking for ("Multi" from the times-tables app). The exam
+  // client sends nothing, so it keeps its existing behaviour untouched.
+  const wantCourse = (body && body.course ? body.course : "").toString().trim().slice(0, 20);
   const codeNum = Number(codeRaw.replace(/\D/g, ""));
 
   if (!name || !codeRaw || Number.isNaN(codeNum)) {
@@ -78,6 +86,17 @@ module.exports = async (req, res) => {
     const device2 = readRichText((page.properties || {})["Device 2"]);
     const unlockedBatch = ((((page.properties || {})["Batch 2"]) || {}).checkbox === true) ? 2 : 1;
     const category = ((((page.properties || {}).Category) || {}).select || {}).name || "Little Hippo";
+    // A row with no Course set is treated as Hippo-only, so existing users keep exam
+    // access without anyone having to backfill the column.
+    const coursesRaw = readMultiSelect((page.properties || {}).Course);
+    const courses = coursesRaw.length ? coursesRaw : ["Hippo"];
+
+    // Refuse before claiming a device slot, so a kid who is not enrolled in the course
+    // does not burn one of their two devices on a login that was going to fail anyway.
+    if (wantCourse && courses.indexOf(wantCourse) < 0) {
+      res.status(200).json({ ok: false, reason: "nocourse" });
+      return;
+    }
 
     async function claim(propName) {
       // best-effort write into a free device slot (needs "Update content" capability)
@@ -94,7 +113,8 @@ module.exports = async (req, res) => {
     // ---- device-lock (max 2 devices per code) ----
     if (!device) {
       // client sent no device id (old client) — allow without locking
-      res.status(200).json({ ok: true, name: matchedName, token: okToken(matchedName, "", unlockedBatch, category) });
+      res.status(200).json({ ok: true, name: matchedName, courses: courses,
+        token: okToken(matchedName, "", unlockedBatch, category, courses) });
       return;
     }
     if (device !== device1 && device !== device2) {
@@ -103,7 +123,8 @@ module.exports = async (req, res) => {
       else if (!device2) { await claim("Device 2"); }
       else { res.status(200).json({ ok: false, reason: "otherdevice" }); return; }
     }
-    res.status(200).json({ ok: true, name: matchedName, token: okToken(matchedName, device, unlockedBatch, category) });
+    res.status(200).json({ ok: true, name: matchedName, courses: courses,
+      token: okToken(matchedName, device, unlockedBatch, category, courses) });
   } catch (err) {
     console.error("login handler error", err);
     res.status(200).json({ ok: false, reason: "server" });

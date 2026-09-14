@@ -15,11 +15,32 @@
 <div id="app">
   <button id="btn-lang" class="lang-toggle" type="button">EN</button>
 
-  <!-- ===== HOME ===== -->
-  <section id="m-home" class="screen active">
-    <div class="card math-card">
+
+  <!-- ===== LOGIN ===== -->
+  <section id="m-login" class="screen active">
+    <div class="card math-card login-card">
       <div class="hippo-logo">🧮</div>
       <h1 data-i18n="appTitle">Үржихүйн хүрд</h1>
+      <p class="muted" data-i18n="loginSub"></p>
+      <form id="m-login-form" autocomplete="off">
+        <label for="m-in-name" data-i18n="lblName"></label>
+        <input id="m-in-name" name="name" type="text" autocomplete="off" autocapitalize="words"
+               autocorrect="off" spellcheck="false" required />
+        <label for="m-in-code" data-i18n="lblCode"></label>
+        <input id="m-in-code" name="code" type="text" inputmode="numeric" pattern="[0-9]*"
+               autocomplete="off" required />
+        <button type="submit" id="m-btn-login" class="btn btn-primary big" data-i18n="btnLogin"></button>
+        <p id="m-login-msg" class="form-msg" role="status"></p>
+      </form>
+      <a class="back-link" href="./index.html" data-i18n="backSite"></a>
+    </div>
+  </section>
+
+  <!-- ===== HOME ===== -->
+  <section id="m-home" class="screen">
+    <div class="card math-card">
+      <div class="hippo-logo">🧮</div>
+      <h2 id="home-hi"></h2>
       <p class="muted" id="home-sub"></p>
 
       <div class="streak-row">
@@ -37,6 +58,7 @@
 
       <button id="btn-start" class="btn btn-primary big" data-i18n="btnStart"></button>
       <button id="btn-progress" class="btn btn-ghost" data-i18n="btnProgress"></button>
+      <button id="btn-logout" class="btn btn-ghost" data-i18n="btnLogout"></button>
       <a class="back-link" href="./index.html" data-i18n="backSite"></a>
     </div>
   </section>

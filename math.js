@@ -56,6 +56,18 @@
       noneTricky: "Хэцүү жишээ алга. 🎈",
       btnBack: "← Буцах", btnReset: "Бүх ахицыг устгах",
       confirmReset: "Энэ төхөөрөмж дээрх бүх ахицыг устгах уу?",
+      loginSub: "Нэр, кодоо оруулаарай.",
+      lblName: "Нэр", lblCode: "Код",
+      phName: "Нэрээ бичнэ үү", phCode: "6 оронтой тоо",
+      btnLogin: "Нэвтрэх", checking: "Шалгаж байна…",
+      btnLogout: "Гарах",
+      hiName: "Сайн уу, {0}! 👋",
+      errInput: "Нэр, кодоо бичээрэй.",
+      errWrong: "Нэр эсвэл код буруу байна. Дахин оролдоорой.",
+      errCourse: "Энэ кодоор үржихүйн хичээл нээгдээгүй байна.",
+      errDevice: "Энэ кодыг хоёр төхөөрөмж дээр аль хэдийн ашигласан байна. Админд хандаарай.",
+      errNet: "Интернэт алга. Холболтоо шалгаарай.",
+      errSetup: "Нэвтрэх тохиргоо хийгдээгүй байна. Админд хандаарай.",
       other: "EN"
     },
     en: {
@@ -92,11 +104,24 @@
       noneTricky: "Nothing tricky right now. 🎈",
       btnBack: "← Back", btnReset: "Reset all progress",
       confirmReset: "Erase all multiplication progress on this device?",
+      loginSub: "Type your name and passcode.",
+      lblName: "Your name", lblCode: "Passcode",
+      phName: "Type your name", phCode: "6 digits",
+      btnLogin: "Log in", checking: "Checking…",
+      btnLogout: "Log out",
+      hiName: "Hi {0}! 👋",
+      errInput: "Type your name and passcode.",
+      errWrong: "Wrong name or passcode. Try again.",
+      errCourse: "This passcode does not include the multiplication course.",
+      errDevice: "This code is already used on 2 devices. Ask the admin to reset it.",
+      errNet: "No internet. Check your connection.",
+      errSetup: "Login is not set up yet. Ask the admin to set it up.",
       other: "МН"
     }
   };
 
   var lang = "mn", S = null, sess = null, warm = null, padMode = "", buf = "";
+  var user = "", userName = "", token = "";
 
   function t(k) {
     var s = (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k, i;
@@ -108,7 +133,7 @@
 
   function $(id) { return document.getElementById(id); }
   function show(id) {
-    ["m-home", "m-warmup", "m-quiz", "m-done", "m-progress"].forEach(function (s) {
+    ["m-login", "m-home", "m-warmup", "m-quiz", "m-done", "m-progress"].forEach(function (s) {
       $(s).classList.toggle("active", s === id);
     });
     window.scrollTo(0, 0);
@@ -124,6 +149,9 @@
     Array.prototype.forEach.call(document.querySelectorAll("[data-i18n]"), function (el) {
       el.textContent = t(el.getAttribute("data-i18n"));
     });
+    $("m-in-name").placeholder = t("phName");
+    $("m-in-code").placeholder = t("phCode");
+    if (userName) $("home-hi").textContent = t("hiName", userName);
   }
   function setLang(l) {
     lang = l;
@@ -132,13 +160,33 @@
   }
 
   // ================================================================= STORE
+  function normName(s2) { return (s2 || "").toString().trim().toLowerCase().replace(/\s+/g, " "); }
+  function progKey() { return user ? KEY + ":" + user : KEY; }
+  // Same key the exam app uses, so logging into both does not eat two device slots.
+  function deviceId() {
+    var k = "hippo_device", v = localStorage.getItem(k);
+    if (!v) {
+      v = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+        : "d" + Date.now().toString(36) + Math.random().toString(36).slice(2);
+      localStorage.setItem(k, v);
+    }
+    return v;
+  }
   function load() {
-    try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
+    try { S = JSON.parse(localStorage.getItem(progKey())); } catch (e) { S = null; }
+    // One-time adopt of progress saved before logins existed, so nothing is lost.
+    // Claimed by the first user to log in, so a sibling does not inherit it too.
+    if ((!S || !S.facts) && user && !localStorage.getItem(KEY + ":claimed")) {
+      try {
+        var legacy = JSON.parse(localStorage.getItem(KEY));
+        if (legacy && legacy.facts) { S = legacy; localStorage.setItem(KEY + ":claimed", user); }
+      } catch (e2) {}
+    }
     if (!S || !S.facts) S = { v: 1, facts: {}, tableIdx: 0, streak: 0, lastDay: "", sessions: 0 };
     syncTable();
     return S;
   }
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function save() { try { localStorage.setItem(progKey(), JSON.stringify(S)); } catch (e) {} }
 
   function fk(a, b) { return Math.min(a, b) + "x" + Math.max(a, b); }
   function fact(k) { return S.facts[k] || (S.facts[k] = { box: 0, due: 0, seen: 0, wrong: 0 }); }
@@ -201,6 +249,7 @@
       $("home-tablebar").style.width = p.pct + "%";
     }
     $("home-sub").textContent = S.streak > 0 ? t("taglineStreak", S.streak) : t("tagline");
+    $("home-hi").textContent = t("hiName", userName);
     show("m-home");
   }
 
@@ -422,6 +471,47 @@
     else if (active === "m-progress") renderProgress();
     else if (active === "m-warmup") { $("warm-title").textContent = countByLabel(warm.t); }
   });
+  function loginErr(reason) {
+    if (reason === "notconfigured") return t("errSetup");
+    if (reason === "nocourse") return t("errCourse");
+    if (reason === "otherdevice") return t("errDevice");
+    if (reason === "network") return t("errNet");
+    return t("errWrong");
+  }
+  $("m-login-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var name = $("m-in-name").value.trim(), code = $("m-in-code").value.trim(), msg = $("m-login-msg");
+    if (!name || !code) { msg.className = "form-msg err"; msg.textContent = t("errInput"); return; }
+    var btn = $("m-btn-login");
+    btn.disabled = true; btn.textContent = t("checking");
+    msg.className = "form-msg"; msg.textContent = "";
+    fetch("/api/login", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: name, code: code, device: deviceId(), course: "Multi" })
+    })
+      .then(function (r) { return r.json().catch(function () { return { ok: false, reason: "parse" }; }); })
+      .catch(function () { return { ok: false, reason: "network" }; })
+      .then(function (res) {
+        btn.disabled = false; btn.textContent = t("btnLogin");
+        if (res && res.ok && res.token) {
+          token = res.token;
+          userName = res.name || name;
+          user = normName(userName);
+          $("m-in-code").value = "";
+          load();
+          renderHome();
+        } else {
+          msg.className = "form-msg err";
+          msg.textContent = loginErr(res && res.reason);
+        }
+      });
+  });
+  $("btn-logout").addEventListener("click", function () {
+    token = ""; user = ""; userName = ""; S = null;
+    $("m-in-code").value = "";
+    $("m-login-msg").textContent = "";
+    show("m-login");
+  });
   $("btn-start").addEventListener("click", startWarmup);
   $("btn-progress").addEventListener("click", renderProgress);
   $("btn-prog-back").addEventListener("click", renderHome);
@@ -432,12 +522,11 @@
   });
   $("btn-reset").addEventListener("click", function () {
     if (!window.confirm(t("confirmReset"))) return;
-    localStorage.removeItem(KEY); load(); renderHome();
+    localStorage.removeItem(progKey()); S = null; load(); renderHome();
   });
 
   try { lang = localStorage.getItem(LKEY) || "mn"; } catch (e) { lang = "mn"; }
   if (lang !== "en" && lang !== "mn") lang = "mn";
   applyLang();
-  load();
-  renderHome();
+  show("m-login");
 })();

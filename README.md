@@ -30,6 +30,23 @@ they can log in. No redeploy needed.
 
 Until `NOTION_TOKEN` is set, login shows *"Login is not set up yet."*
 
+### Courses (who gets which app)
+The Users DB has a **`Course`** multi-select with two options, **`Hippo`** and **`Multi`**.
+Tick the courses a child is enrolled in:
+
+- `Hippo` -> the English exams at `/`
+- `Multi` -> the times tables at `/math.html`
+
+Both clients send the course they need and `api/login.js` refuses with `nocourse` if the row
+does not carry it. Two deliberate details:
+
+- **An empty `Course` cell counts as `Hippo`**, so every existing user kept exam access when
+  the column was added and nobody had to backfill it. Tick `Multi` to grant the maths app.
+- **The course is checked before a device slot is claimed**, so a child who is not enrolled
+  does not burn one of their two device slots on a login that was always going to fail.
+
+After login the exams home screen only shows the times-tables link when the row has `Multi`.
+
 ### Device-lock (one code = up to two devices)
 Each passcode may be used on **up to 2 devices**. The first two devices to log in are recorded in
 the `Device` and `Device 2` columns of the Users DB; a third, different device is refused with
@@ -92,9 +109,13 @@ vercel dev                       # runs the static app + /api functions locally
 
 ## Times Tables / Үржихүйн хүрд
 
-A second subject on the same site, at **/math.html**. No passcode: a daily habit should not
-start with a login, and progress is per-device anyway. Linked from the login screen and the
-home screen. Bilingual, Mongolian by default, English via the toggle top right.
+A second subject on the same site, at **/math.html**. Same name + passcode as the exams, and
+the row needs `Multi` in its `Course` cell (see Courses above). Bilingual, Mongolian by
+default, English via the toggle top right.
+
+Progress is stored per child, under `mlt_math_v1:<name>`, so siblings sharing a tablet keep
+separate grids. The login reuses the exam app's `hippo_device` id, so a child logging into
+both apps uses one device slot, not two.
 
 ### The daily loop (about 5 minutes)
 1. **Warm up** — skip-count the table being learned, fill three blanks.
@@ -120,4 +141,4 @@ home screen. Bilingual, Mongolian by default, English via the toggle top right.
   digit, so both tables are listed explicitly. Any new numeral needs a row in each.
 - Fredoka has no Cyrillic, so every display stack falls back to Comfortaa, which does. The
   browser falls back per glyph, so digits stay in Fredoka and Cyrillic text picks up Comfortaa.
-- Progress is `localStorage` under `mlt_math_v1`, language under `mlt_math_lang`.
+- Progress is `localStorage` under `mlt_math_v1:<name>`, language under `mlt_math_lang`.

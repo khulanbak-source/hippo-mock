@@ -66,12 +66,13 @@
     var name = $("in-name").value.trim(), code = $("in-code").value.trim(), msg = $("login-msg");
     if (!name || !code) { msg.className = "form-msg err"; msg.textContent = "Type your name and passcode."; return; }
     var btn = $("btn-login"); btn.disabled = true; btn.textContent = "Checking…"; msg.className = "form-msg"; msg.textContent = "";
-    api("/api/login", { name: name, code: code, device: deviceId() }).then(function (res) {
-      if (res && res.ok && res.token) { state.token = res.token; loadAll(res.name || name, btn); }
+    api("/api/login", { name: name, code: code, device: deviceId(), course: "Hippo" }).then(function (res) {
+      if (res && res.ok && res.token) { state.token = res.token; state.courses = res.courses || []; loadAll(res.name || name, btn); }
       else {
         btn.disabled = false; btn.textContent = "Log in"; msg.className = "form-msg err";
         if (res && res.reason === "notconfigured") msg.textContent = "Login is not set up yet. Ask the admin to set it up.";
         else if (res && res.reason === "otherdevice") msg.textContent = "This code is already used on 2 devices. Ask the admin to reset it.";
+        else if (res && res.reason === "nocourse") msg.textContent = "This passcode does not include the Hippo course.";
         else if (res && res.reason === "network") msg.textContent = "No internet. Check your connection.";
         else msg.textContent = "Wrong name or passcode. Try again.";
       }
@@ -93,6 +94,8 @@
     if (state.category) { lvl.textContent = state.category; lvl.classList.remove("hidden"); }
     else { lvl.classList.add("hidden"); }
     $("rule-time").textContent = Math.round(TIME_LIMIT / 60) + " minutes"; $("rule-pass").textContent = PASS + "%";
+    // Only offer the times-tables link to kids enrolled in that course.
+    $("link-math").classList.toggle("hidden", (state.courses || []).indexOf("Multi") < 0);
     updateProgressLine(); show("screen-ready");
   }
   function updateProgressLine() {
