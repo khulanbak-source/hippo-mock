@@ -87,3 +87,37 @@ vercel dev                       # runs the static app + /api functions locally
 | `build_data.py` | crossword generator + content assembler |
 | `content/uoe_*.json` | the 10 Use-of-English tests (source of truth, not deployed) |
 | `docs/SPEC.md` | design + exam-format notes |
+
+---
+
+## Times Tables / Үржихүйн хүрд
+
+A second subject on the same site, at **/math.html**. No passcode: a daily habit should not
+start with a login, and progress is per-device anyway. Linked from the login screen and the
+home screen. Bilingual, Mongolian by default, English via the toggle top right.
+
+### The daily loop (about 5 minutes)
+1. **Warm up** — skip-count the table being learned, fill three blanks.
+2. **Quick fire** — 10 questions, mixing new facts with reviews that are due.
+3. **Result** — streak, what is still tricky, and the 10x10 mastery grid.
+
+### How it teaches
+- **Facts are commutative.** 3x4 and 4x3 are one fact, so there are 55 to learn, not 100.
+  The grid mirrors across the diagonal, which is how a child sees why.
+- **Leitner spacing.** A miss resets the fact and it returns 3 questions later in the same
+  session, then the next day. Right and fast three times over separate days retires it.
+- **Wrong answers cost nothing.** No penalty: the dot array appears, plus the skip-count line,
+  and the fact is asked again later in the session.
+- **Tables unlock easiest-first:** 2, 5, 10, 1, 4, 3, 6, 9, 8, 7. Later tables go faster
+  because they share facts already learned.
+- A table takes about three days to unlock by design, because a fact has to be recalled
+  correctly on separate days. The progress bar uses part-marks so every session still moves it.
+
+### Notes for editing
+- All copy lives in the `I18N` map at the top of `math.js`. Mongolian first, English second.
+- `GEN` and `INS` hold the Mongolian case endings for digits (2 reads as хоёр, so it takes
+  `2-ын` in the genitive and `2-оор` in the instrumental). These cannot be generated from the
+  digit, so both tables are listed explicitly. Any new numeral needs a row in each.
+- Fredoka has no Cyrillic, so every display stack falls back to Comfortaa, which does. The
+  browser falls back per glyph, so digits stay in Fredoka and Cyrillic text picks up Comfortaa.
+- Progress is `localStorage` under `mlt_math_v1`, language under `mlt_math_lang`.

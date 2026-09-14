@@ -1,51 +1,52 @@
 <!doctype html>
-<html lang="en">
+<html lang="mn">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#1f6f5c" />
-  <title>Times Tables · My Little Test</title>
+  <title>Үржихүйн хүрд · My Little Test</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Comfortaa:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" />
   <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="./math.css" />
 </head>
 <body class="math-body">
 <div id="app">
+  <button id="btn-lang" class="lang-toggle" type="button">EN</button>
 
   <!-- ===== HOME ===== -->
   <section id="m-home" class="screen active">
     <div class="card math-card">
       <div class="hippo-logo">🧮</div>
-      <h1>Times Tables</h1>
-      <p class="muted" id="home-sub">A few minutes a day. That is all it takes.</p>
+      <h1 data-i18n="appTitle">Үржихүйн хүрд</h1>
+      <p class="muted" id="home-sub"></p>
 
       <div class="streak-row">
-        <div class="stat"><span class="stat-num" id="stat-streak">0</span><span class="stat-lbl">day streak</span></div>
-        <div class="stat"><span class="stat-num" id="stat-mastered">0</span><span class="stat-lbl">facts mastered</span></div>
-        <div class="stat"><span class="stat-num" id="stat-total">55</span><span class="stat-lbl">facts in all</span></div>
+        <div class="stat"><span class="stat-num" id="stat-streak">0</span><span class="stat-lbl" data-i18n="lblStreak"></span></div>
+        <div class="stat"><span class="stat-num" id="stat-mastered">0</span><span class="stat-lbl" data-i18n="lblMastered"></span></div>
+        <div class="stat"><span class="stat-num" id="stat-total">55</span><span class="stat-lbl" data-i18n="lblTotal"></span></div>
       </div>
 
       <div class="table-banner">
-        <span class="muted small">Learning now</span>
-        <div class="table-big" id="home-table">2 × table</div>
+        <span class="muted small" data-i18n="learningNow"></span>
+        <div class="table-big" id="home-table"></div>
         <div class="table-bar"><div class="table-bar-fill" id="home-tablebar"></div></div>
         <span class="small" id="home-tabletxt"></span>
       </div>
 
-      <button id="btn-start" class="btn btn-primary big">Start today's practice</button>
-      <button id="btn-progress" class="btn btn-ghost">See my progress grid</button>
-      <a class="back-link" href="./index.html">← Back to My Little Test</a>
+      <button id="btn-start" class="btn btn-primary big" data-i18n="btnStart"></button>
+      <button id="btn-progress" class="btn btn-ghost" data-i18n="btnProgress"></button>
+      <a class="back-link" href="./index.html" data-i18n="backSite"></a>
     </div>
   </section>
 
   <!-- ===== WARM UP ===== -->
   <section id="m-warmup" class="screen">
     <div class="card math-card">
-      <div class="step-chip">Warm up</div>
-      <h2 id="warm-title">Count by 2</h2>
-      <p class="muted small">Fill in the missing numbers.</p>
+      <div class="step-chip" data-i18n="chipWarm"></div>
+      <h2 id="warm-title"></h2>
+      <p class="muted small" data-i18n="warmHint"></p>
       <div class="ladder" id="warm-ladder"></div>
       <div class="pad-wrap">
         <div class="pad-display" id="warm-display">?</div>
@@ -84,7 +85,7 @@
           <button data-k="ok" class="pad-ok">✓</button>
         </div>
       </div>
-      <button id="btn-hint" class="btn btn-ghost">Show me 👀</button>
+      <button id="btn-hint" class="btn btn-ghost" data-i18n="btnHint"></button>
     </div>
   </section>
 
@@ -92,33 +93,33 @@
   <section id="m-done" class="screen">
     <div class="card math-card">
       <div class="hippo-logo" id="done-emoji">🎉</div>
-      <h1 id="done-title">Nice work!</h1>
+      <h1 id="done-title"></h1>
       <p class="progress-line" id="done-line"></p>
       <div id="done-unlock" class="unlock-box hidden"></div>
       <div class="grid-wrap"><div id="done-grid" class="mgrid"></div></div>
       <p class="muted small" id="done-tip"></p>
-      <button id="btn-again" class="btn btn-primary">Practise again</button>
-      <button id="btn-home" class="btn btn-ghost">Done for today</button>
+      <button id="btn-again" class="btn btn-primary" data-i18n="btnAgain"></button>
+      <button id="btn-home" class="btn btn-ghost" data-i18n="btnDoneToday"></button>
     </div>
   </section>
 
   <!-- ===== PROGRESS ===== -->
   <section id="m-progress" class="screen">
     <div class="card math-card">
-      <h2>My progress</h2>
+      <h2 data-i18n="progTitle"></h2>
       <div class="grid-wrap"><div id="prog-grid" class="mgrid"></div></div>
       <div class="legend">
-        <span><i class="sw b0"></i>new</span>
-        <span><i class="sw b1"></i>learning</span>
-        <span><i class="sw b3"></i>strong</span>
-        <span><i class="sw b5"></i>mastered</span>
+        <span><i class="sw b0"></i><b data-i18n="legNew"></b></span>
+        <span><i class="sw b1"></i><b data-i18n="legLearning"></b></span>
+        <span><i class="sw b3"></i><b data-i18n="legStrong"></b></span>
+        <span><i class="sw b5"></i><b data-i18n="legMastered"></b></span>
       </div>
       <div class="weak-box">
-        <h3>Tricky ones right now</h3>
+        <h3 data-i18n="trickyTitle"></h3>
         <div id="prog-weak" class="weak-list"></div>
       </div>
-      <button id="btn-prog-back" class="btn btn-ghost">← Back</button>
-      <button id="btn-reset" class="btn btn-ghost danger">Reset all progress</button>
+      <button id="btn-prog-back" class="btn btn-ghost" data-i18n="btnBack"></button>
+      <button id="btn-reset" class="btn btn-ghost danger" data-i18n="btnReset"></button>
     </div>
   </section>
 

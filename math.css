@@ -1,4 +1,21 @@
-/* Times Tables — layered on top of styles.css tokens */
+/* Times Tables - layered on top of styles.css tokens.
+   Fredoka has no Cyrillic, so Comfortaa sits behind it in every display stack:
+   the browser falls back per glyph, keeping digits in Fredoka and Cyrillic in
+   Comfortaa rather than dropping the whole string to a system font. */
+.math-body h1, .math-body h2, .math-body h3,
+.math-body .btn, .math-body .table-big, .math-body .stat-num,
+.math-body .question, .math-body .rung, .math-body .pad button,
+.math-body .pad-display, .math-body .skipline, .math-body .unlock-box,
+.math-body .weak-list span, .math-body .back-link{
+  font-family:'Fredoka','Comfortaa','Nunito',system-ui,sans-serif}
+
+.lang-toggle{position:fixed;top:12px;right:12px;z-index:20;font-family:'Nunito',sans-serif;font-size:12.5px;
+  font-weight:800;letter-spacing:.4px;background:var(--sand);color:#8a807a;border:2px solid var(--stone);
+  border-radius:20px;padding:4px 12px;min-height:0;width:auto;cursor:pointer}
+.lang-toggle:active{transform:scale(.95)}
+.math-card{position:relative}
+.math-body .screen{padding-top:46px}
+
 .math-body .screen{display:none;place-items:start center;padding:18px 14px 28px;min-height:100vh}
 .math-body .screen.active{display:grid}
 .math-card{max-width:460px;padding:22px 20px}
